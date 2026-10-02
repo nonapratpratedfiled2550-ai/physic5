@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โมเมนตัมและการชน</title>
+<style>
+  :root {
+    --bg: #0c1218;
+    --panel: #141c24;
+    --panel-2: #1b2631;
+    --ink: #e8eef4;
+    --muted: #93a8b8;
+    --line: #2c3e4e;
+    --teal: #14b8a6;
+    --teal-dim: rgba(20, 184, 166, 0.45);
+    --amber: #f0a202;
+    --amber-dim: rgba(240, 162, 2, 0.45);
+    --vel: #9fd7f5;
+    --mom: #ffd166;
+    --loss: #ff8b7b;
+    --gain: #8eb6ff;
+    --ok: #8fd18d;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, rgba(20, 184, 166, 0.08), transparent 50%),
+      radial-gradient(900px 400px at 100% 0%, rgba(240, 162, 2, 0.06), transparent 46%),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Leelawadee UI", Tahoma, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  button, input { font-family: inherit; }
+  .app { width: min(1480px, 100%); margin: 0 auto; padding: 16px 16px 28px; }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .brand { display: flex; gap: 12px; align-items: center; }
+  .logo { width: 46px; height: 46px; position: relative; flex: none; }
+  .logo::before, .logo::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  }
+  .logo::before { width: 26px; height: 26px; background: var(--teal); left: 0; bottom: 4px; }
+  .logo::after { width: 20px; height: 20px; background: var(--amber); right: 0; top: 4px; }
+  h1 { font-size: 26px; line-height: 1.15; margin: 0; letter-spacing: 0; }
+  header p { margin: 3px 0 0; color: var(--muted); font-size: 13.5px; }
+  .assume { text-align: right; max-width: 340px; }
+  .layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr) 330px;
+    gap: 14px;
+    align-items: start;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+  }
+  .controls, .side { padding: 14px; }
+  @media (min-width: 1181px) {
+    .controls, .side { max-height: calc(100vh - 108px); overflow: auto; }
+    .stage-wrap { max-height: calc(100vh - 108px); overflow: auto; }
+  }
+  h2 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .side h2 { margin-top: 14px; }
+  .side h2:first-child { margin-top: 0; }
+  .modes { display: grid; gap: 6px; }
+  .modes button, .presets button, .transport button {
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: left;
+  }
+  .modes button { font-weight: 650; }
+  .modes button.active, .presets button.active, .transport button.active {
+    background: var(--teal);
+    color: #06221e;
+    border-color: var(--teal);
+  }
+  .hint {
+    margin: 8px 0 12px;
+    color: var(--muted);
+    font-size: 13px;
+    min-height: 2.6em;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; margin: 0 0 10px; }
+  .field-top, .switch, .transport, .presets, .legend-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .field-top span { font-size: 13.5px; }
+  output {
+    color: var(--vel);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 13.5px;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 22px;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 99px;
+    background: inherit;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: #f4fbff;
+    border: 2px solid var(--teal);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 6px;
+    border-radius: 99px;
+    background: #2c3944;
+  }
+  input[type="range"]::-moz-range-progress { background: var(--teal); height: 6px; }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #f4fbff;
+    border: 2px solid var(--teal);
+  }
+  .presets { margin-bottom: 8px; }
+  .presets button { flex: 1; text-align: center; font-size: 12.5px; padding: 7px 4px; }
+  .switch { justify-content: flex-start; margin: 6px 0; cursor: pointer; font-size: 14px; }
+  .switch input { position: absolute; opacity: 0; pointer-events: none; }
+  .track {
+    width: 38px;
+    height: 22px;
+    border-radius: 99px;
+    background: #2a3844;
+    border: 1px solid var(--line);
+    position: relative;
+    flex: none;
+  }
+  .track::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #d5e2ec;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.15s ease;
+  }
+  .switch input:checked + .track { background: #115e59; border-color: var(--teal); }
+  .switch input:checked + .track::after { transform: translateX(16px); background: var(--teal-dim); background: #9ff7ee; }
+  .switch input:focus-visible + .track { outline: 2px solid var(--vel); outline-offset: 2px; }
+  .v-label { color: var(--vel); }
+  .p-label { color: var(--mom); }
+  .transport { margin-top: 12px; }
+  .transport button { flex: 1; text-align: center; font-weight: 700; }
+  .speeds { display: flex; gap: 6px; margin-top: 8px; }
+  .speeds button { flex: 1; text-align: center; font-size: 13px; }
+  .note {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .legend-row { justify-content: flex-start; gap: 14px; margin: 8px 0 2px; font-size: 13px; color: var(--muted); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .dot.a { background: var(--teal); }
+  .dot.b { background: var(--amber); }
+  .stage-wrap { padding: 12px; }
+  .stage {
+    position: relative;
+    height: min(430px, 50vh);
+    min-height: 300px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #10161c;
+    border: 1px solid #243140;
+  }
+  canvas { width: 100%; height: 100%; display: block; }
+  .graph-ft { height: 200px; background: #10161c; border-radius: 12px; border: 1px solid #243140; }
+  .graph-bar { height: 320px; background: #10161c; border-radius: 12px; border: 1px solid #243140; }
+  .live {
+    margin-top: 8px;
+    min-height: 2.7em;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .live strong { color: var(--ink); font-weight: 700; }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .metric {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 8px 7px;
+    min-width: 0;
+  }
+  .metric h3 { margin: 0; font-size: 12px; color: var(--muted); font-weight: 650; }
+  .metric p {
+    margin: 4px 0 0;
+    font-size: 16px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+  .metric span { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .metric.ok p { color: var(--ok); }
+  .metric.bad p { color: var(--loss); }
+  .metric.gain p { color: var(--gain); }
+  .eq {
+    margin-top: 8px;
+    background: #101920;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    max-height: 190px;
+    overflow: auto;
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .eq p { margin: 0 0 6px; }
+  .eq p:last-child { margin-bottom: 0; }
+  .eq code {
+    font-family: Consolas, "Leelawadee UI", monospace;
+    font-size: 13px;
+    color: #d7ecff;
+  }
+  .caption { color: var(--muted); font-size: 12.5px; margin: 6px 0 0; min-height: 2.4em; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 5px 4px; text-align: right; border-bottom: 1px solid #243140; }
+  th:first-child, td:first-child { text-align: left; color: var(--muted); }
+  th { color: var(--muted); font-weight: 650; }
+  td.c1 { color: #7ee0d6; }
+  td.c2 { color: #ffd27a; }
+  .myths { display: flex; flex-direction: column; gap: 8px; }
+  .myth {
+    background: #2a2118;
+    border: 1px solid #6d5733;
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .myth h3 { margin: 0 0 4px; color: #ffd27a; font-size: 13.5px; }
+  .myth p { margin: 0; color: #f6ead8; font-size: 13px; line-height: 1.55; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--vel); outline-offset: 2px; }
+  @media (max-width: 1180px) {
+    .layout { grid-template-columns: 280px minmax(0, 1fr); }
+    .side { grid-column: 1 / -1; }
+    header { flex-direction: column; align-items: flex-start; }
+    .assume { text-align: left; }
+  }
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+    h1 { font-size: 22px; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:last-child { grid-column: 1 / -1; }
+    .presets, .transport, .speeds { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>โมเมนตัมและการชน</h1>
+        <p>สื่อจำลองเชิงโต้ตอบ · ฟิสิกส์ ม.4–ม.6</p>
+      </div>
+    </div>
+    <p class="assume">หน่วย SI · พื้นไร้ความเสียดทาน · ไม่มีแรงต้านอากาศ<br>ขวาเป็น + · ซ้ายเป็น − · ขึ้นเป็น +</p>
+  </header>
+
+  <div class="layout">
+    <section class="panel controls" aria-label="แผงควบคุม">
+      <h2>โหมดการจำลอง</h2>
+      <div class="modes" role="tablist">
+        <button type="button" data-mode="1" role="tab">1 · การดลและแรงดล</button>
+        <button type="button" data-mode="2" role="tab">2 · การชนใน 1 มิติ</button>
+        <button type="button" data-mode="3" role="tab">3 · การดีดตัว / ระเบิด</button>
+        <button type="button" data-mode="4" role="tab">4 · การชนใน 2 มิติ</button>
+      </div>
+      <p class="hint" id="hint"></p>
+
+      <div class="legend-row" aria-hidden="true">
+        <span><i class="dot a"></i>วัตถุ 1</span>
+        <span><i class="dot b"></i>วัตถุ 2</span>
+      </div>
+
+      <label class="field">
+        <span class="field-top"><span>มวลวัตถุ 1 (m₁)</span><output id="o-m1">2.0 kg</output></span>
+        <input id="m1" type="range" min="0.5" max="10" step="0.5" value="2">
+      </label>
+      <label class="field" data-modes="2,3,4">
+        <span class="field-top"><span>มวลวัตถุ 2 (m₂)</span><output id="o-m2">3.0 kg</output></span>
+        <input id="m2" type="range" min="0.5" max="10" step="0.5" value="3">
+      </label>
+      <label class="field">
+        <span class="field-top"><span>ความเร็วเริ่มต้นวัตถุ 1 (u₁)</span><output id="o-u1">+10 m/s</output></span>
+        <input id="u1" type="range" min="-20" max="20" step="1" value="10">
+      </label>
+      <label class="field" data-modes="2,3,4">
+        <span class="field-top"><span>ความเร็วเริ่มต้นวัตถุ 2 (u₂)</span><output id="o-u2">−5 m/s</output></span>
+        <input id="u2" type="range" min="-20" max="20" step="1" value="-5">
+      </label>
+
+      <div data-modes="2,4">
+        <h2>ประเภทการชน</h2>
+        <div class="presets">
+          <button type="button" data-e="1">ยืดหยุ่นสมบูรณ์</button>
+          <button type="button" data-e="0.5">ไม่ยืดหยุ่น</button>
+          <button type="button" data-e="0">ติดกันไป</button>
+        </div>
+        <label class="field">
+          <span class="field-top"><span>สัมประสิทธิ์การคืนตัว (e)</span><output id="o-e">1.00</output></span>
+          <input id="e" type="range" min="0" max="1" step="0.05" value="1">
+        </label>
+      </div>
+
+      <label class="field" data-modes="1">
+        <span class="field-top"><span>ระยะเวลาการชน (Δt)</span><output id="o-dt">0.05 s</output></span>
+        <input id="dt" type="range" min="0.01" max="0.5" step="0.01" value="0.05">
+      </label>
+      <label class="field" data-modes="4">
+        <span class="field-top"><span>มุมการชน θ</span><output id="o-th">30°</output></span>
+        <input id="theta" type="range" min="0" max="90" step="1" value="30">
+      </label>
+
+      <h2>เวกเตอร์บนฉาก</h2>
+      <label class="switch"><input id="showV" type="checkbox" checked><span class="track"></span><span class="v-label">แสดงเวกเตอร์ความเร็ว (v)</span></label>
+      <label class="switch"><input id="showP" type="checkbox" checked><span class="track"></span><span class="p-label">แสดงเวกเตอร์โมเมนตัม (p)</span></label>
+
+      <div class="transport">
+        <button type="button" id="play">เล่น</button>
+        <button type="button" id="reset">เริ่มใหม่</button>
+      </div>
+      <div class="speeds transport" role="group" aria-label="ความเร็วการเล่น">
+        <button type="button" data-speed="1" class="active">1×</button>
+        <button type="button" data-speed="0.5">0.5×</button>
+        <button type="button" data-speed="0.25">0.25×</button>
+      </div>
+      <p class="note">สมมติฐาน: ระบบปิดไม่มีแรงภายนอก ยกเว้นโหมดชนกำแพง ซึ่งกำแพงออกแรงภายนอกต่อลูกบอล แรงดล I = Δp = FΔt บางตำราเรียกปริมาณนี้ว่าการดล</p>
+    </section>
+
+    <section class="panel stage-wrap" aria-label="ฉากจำลอง">
+      <div class="stage"><canvas id="view"></canvas></div>
+      <div class="live" id="live"></div>
+      <div class="metrics">
+        <article class="metric" id="card-pi"><h3 id="lab-pi">โมเมนตัมรวมก่อน</h3><p id="val-pi">—</p><span>kg·m/s</span></article>
+        <article class="metric" id="card-pf"><h3 id="lab-pf">โมเมนตัมรวมหลัง</h3><p id="val-pf">—</p><span id="sub-pf">kg·m/s</span></article>
+        <article class="metric" id="card-ki"><h3>พลังงานจลน์ก่อน</h3><p id="val-ki">—</p><span>J</span></article>
+        <article class="metric" id="card-kf"><h3>พลังงานจลน์หลัง</h3><p id="val-kf">—</p><span id="sub-kf">J</span></article>
+        <article class="metric" id="card-dk"><h3>พลังงานที่สูญเสีย ΔEk</h3><p id="val-dk">—</p><span>Ekก่อน − Ekหลัง · J</span></article>
+      </div>
+      <div class="eq" id="eq"></div>
+    </section>
+
+    <aside class="panel side" aria-label="กราฟและบทวิเคราะห์">
+      <h2>กราฟแรงเทียบกับเวลา</h2>
+      <canvas class="graph-ft" id="ft"></canvas>
+      <p class="caption" id="ft-caption"></p>
+      <h2>กราฟแท่งก่อน–หลังชน</h2>
+      <canvas class="graph-bar" id="bars"></canvas>
+      <h2>วิเคราะห์รายวัตถุ</h2>
+      <div id="table"></div>
+      <h2>ความเข้าใจคลาดเคลื่อนที่พบบ่อย</h2>
+      <div class="myths" id="myths"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const V_SCALE = 0.24;
+const P_SCALE = 0.06;
+
+function radius(m) {
+  return 0.5 + (m - 0.5) * 0.08;
+}
+
+function ke(m, vx, vy) {
+  return 0.5 * m * (vx * vx + vy * vy);
+}
+
+function fmt(n, d) {
+  const p = d === undefined ? 2 : d;
+  if (!Number.isFinite(n)) return "—";
+  const v = Math.abs(n) < 5e-4 ? 0 : n;
+  const body = Math.abs(v).toFixed(p);
+  return v < 0 ? "−" + body : body;
+}
+
+function fmtSigned(n, d) {
+  const s = fmt(n, d);
+  if (s === "—") return s;
+  if (s.startsWith("−") || s === "0" || s === "0.00" || s === "0.0" || s === "0.000") return s;
+  return "+" + s;
+}
+
+function typeName(mode, e, will) {
+  if (mode === 1) return "ชนกำแพงนิ่งแบบยืดหยุ่น";
+  if (mode === 3) return "การดีดตัวด้วยสปริง";
+  if (!will) return "ไม่เกิดการชน";
+  if (e >= 0.999) return mode === 4 ? "ยืดหยุ่นสมบูรณ์ใน 2 มิติ" : "ยืดหยุ่นสมบูรณ์";
+  if (e <= 0.001) return mode === 4 ? "ไม่คืนตัวตามแนวชน (e = 0)" : "ติดกันไป";
+  return mode === 4 ? "ไม่ยืดหยุ่นใน 2 มิติ" : "ไม่ยืดหยุ่น";
+}
+
+function finish(o) {
+  o.p1ix = o.m1 * o.u1x;
+  o.p1iy = o.m1 * o.u1y;
+  o.p1fx = o.m1 * o.v1x;
+  o.p1fy = o.m1 * o.v1y;
+  if (o.wall) {
+    o.p2ix = o.p2iy = o.p2fx = o.p2fy = 0;
+    o.Pix = o.p1ix;
+    o.Piy = o.p1iy;
+    o.Pfx = o.p1fx;
+    o.Pfy = o.p1fy;
+    o.Ek1i = ke(o.m1, o.u1x, o.u1y);
+    o.Ek2i = 0;
+    o.Ek1f = ke(o.m1, o.v1x, o.v1y);
+    o.Ek2f = 0;
+  } else {
+    o.p2ix = o.m2 * o.u2x;
+    o.p2iy = o.m2 * o.u2y;
+    o.p2fx = o.m2 * o.v2x;
+    o.p2fy = o.m2 * o.v2y;
+    o.Pix = o.p1ix + o.p2ix;
+    o.Piy = o.p1iy + o.p2iy;
+    o.Pfx = o.p1fx + o.p2fx;
+    o.Pfy = o.p1fy + o.p2fy;
+    o.Ek1i = ke(o.m1, o.u1x, o.u1y);
+    o.Ek2i = ke(o.m2, o.u2x, o.u2y);
+    o.Ek1f = ke(o.m1, o.v1x, o.v1y);
+    o.Ek2f = ke(o.m2, o.v2x, o.v2y);
+  }
+  o.Eki = o.Ek1i + o.Ek2i;
+  o.Ekf = o.Ek1f + o.Ek2f;
+  o.loss = o.Eki - o.Ekf;
+  o.J1x = o.p1fx - o.p1ix;
+  o.J1y = o.p1fy - o.p1iy;
+  o.J2x = o.p2fx - o.p2ix;
+  o.J2y = o.p2fy - o.p2iy;
+  const dt = o.dt > 0 ? o.dt : 0.1;
+  o.F1x = o.J1x / dt;
+  o.F1y = o.J1y / dt;
+  o.F2x = o.J2x / dt;
+  o.F2y = o.J2y / dt;
+  o.typeName = typeName(o.mode, o.e, o.will);
+  return o;
+}
+
+function solve(p) {
+  const m1 = p.m1;
+  const m2 = p.m2;
+  const o = {
+    mode: p.mode,
+    e: p.e,
+    theta: p.theta,
+    m1: m1,
+    m2: m2,
+    wall: false,
+    will: false,
+    miss: "",
+    nx: 1,
+    ny: 0,
+    inputU1: p.u1,
+    inputU2: p.u2,
+    ucm: 0,
+    vrel: 0,
+    usedDefaultVrel: false,
+    armedNeed: 0.45,
+    u1x: 0, u1y: 0, u2x: 0, u2y: 0,
+    v1x: 0, v1y: 0, v2x: 0, v2y: 0,
+    u1n: 0, u2n: 0, v1n: 0, v2n: 0,
+    dt: 0.1
+  };
+
+  if (p.mode === 1) {
+    const u = p.u1;
+    o.wall = true;
+    o.m2 = 0;
+    o.u1x = u;
+    o.v1x = -u;
+    o.will = Math.abs(u) > 1e-9;
+    o.dt = p.dt;
+    o.nx = u >= 0 ? 1 : -1;
+    return finish(o);
+  }
+
+  if (p.mode === 3) {
+    const P = m1 * p.u1 + m2 * p.u2;
+    const ucm = P / (m1 + m2);
+    let vrel = Math.abs(p.u1 - p.u2);
+    o.usedDefaultVrel = vrel < 0.5;
+    if (o.usedDefaultVrel) vrel = 8;
+    o.ucm = ucm;
+    o.vrel = vrel;
+    o.u1x = ucm;
+    o.u2x = ucm;
+    o.v1x = ucm - (m2 / (m1 + m2)) * vrel;
+    o.v2x = ucm + (m1 / (m1 + m2)) * vrel;
+    o.will = true;
+    o.dt = 0.12;
+    o.nx = 1;
+    o.ny = 0;
+    o.armedNeed = Math.min(0.55, 4 / (Math.abs(ucm) + 2.5));
+    return finish(o);
+  }
+
+  const th = (p.mode === 4 ? p.theta : 0) * Math.PI / 180;
+  const nx = Math.cos(th);
+  const ny = Math.sin(th);
+  const tx = -ny;
+  const ty = nx;
+  const u1x = p.u1;
+  const u1y = 0;
+  const u2x = p.u2;
+  const u2y = 0;
+  const u1n = u1x * nx + u1y * ny;
+  const u2n = u2x * nx + u2y * ny;
+  const u1t = u1x * tx + u1y * ty;
+  const u2t = u2x * tx + u2y * ty;
+  const approaching = u1n - u2n > 1e-6;
+  let v1n = u1n;
+  let v2n = u2n;
+  const v1t = u1t;
+  const v2t = u2t;
+  if (approaching) {
+    const e = p.e;
+    const M = m1 + m2;
+    v1n = ((m1 - e * m2) * u1n + m2 * (1 + e) * u2n) / M;
+    v2n = (m1 * (1 + e) * u1n + (m2 - e * m1) * u2n) / M;
+    o.will = true;
+  } else {
+    o.will = false;
+    if (p.u1 <= p.u2 + 1e-9) o.miss = "separate";
+    else if (p.mode === 4 && p.theta >= 89.5) o.miss = "graze";
+    else o.miss = "none";
+  }
+  o.nx = nx;
+  o.ny = ny;
+  o.u1x = u1x;
+  o.u1y = u1y;
+  o.u2x = u2x;
+  o.u2y = u2y;
+  o.u1n = u1n;
+  o.u2n = u2n;
+  o.v1n = v1n;
+  o.v2n = v2n;
+  o.v1x = v1n * nx + v1t * tx;
+  o.v1y = v1n * ny + v1t * ty;
+  o.v2x = v2n * nx + v2t * tx;
+  o.v2y = v2n * ny + v2t * ty;
+  o.dt = 0.1;
+  return finish(o);
+}
+
+function hints(mode) {
+  if (mode === 1) return "ลูกบอลชนกำแพงนิ่ง แนวคิดเดียวกับลูกกระทบไม้ตีที่หนักมากจนไม่ถอย ลองเปลี่ยน Δt แล้วดูความสูงของกราฟแรง เทียบกับพื้นที่ใต้กราฟ";
+  if (mode === 2) return "กดเลือก e = 1, 0.5 และ 0 แล้วเทียบพลังงานจลน์ โมเมนตัมรวมของระบบปิดยังเท่าเดิมทุกค่า e";
+  if (mode === 3) return "ก่อนดีด วัตถุติดกันและเคลื่อนที่ด้วยความเร็วศูนย์กลางมวล ค่า u₁ กับ u₂ ใช้คิดโมเมนตัมรวม สปริงเป็นแรงภายในจึงไม่เปลี่ยนโมเมนตัมรวม";
+  return "θ = 0° คือชนตรง ใกล้ 90° คือเฉียดกัน แรงตามแนวชนถ่ายโมเมนตัม แนวสัมผัสไม่เปลี่ยนเพราะสมมติผิวเรียบ";
+}
+
+function mythsFor(sc) {
+  const vector = {
+    h: "โมเมนตัมไม่ใช่ปริมาณสเกลาร์",
+    p: "โมเมนตัมเป็นเวกเตอร์ ทิศทางต้องติดไปกับเครื่องหมาย บวกคือไปทางขวาหรือขึ้น ลบคือไปทางซ้ายหรือลง โมเมนตัมรวมคือผลบวกแบบมีทิศ ถ้าวัตถุสวนทางกัน ห้ามนำแต่ขนาดมาบวกกัน"
+  };
+  const energyFalse = {
+    h: "พลังงานจลน์ไม่ได้ถูกอนุรักษ์ในทุกการชน",
+    p: "พลังงานจลน์อนุรักษ์เฉพาะการชนแบบยืดหยุ่นสมบูรณ์ (e = 1) เท่านั้น ถ้า e น้อยกว่า 1 พลังงานส่วนที่หายไปกลายเป็นความร้อนและเสียง โมเมนตัมของระบบปิดยังอนุรักษ์อยู่ได้แม้พลังงานจลน์จะลด"
+  };
+  if (sc.mode === 1) {
+    return [
+      {
+        h: "ชนกำแพงแล้วโมเมนตัมของลูกบอลไม่คงที่",
+        p: "การอนุรักษ์โมเมนตัมใช้กับระบบปิดที่แรงภายนอกสุทธิเป็นศูนย์ กำแพงออกแรงภายนอกต่อลูกบอล ดังนั้น p เปลี่ยนจาก " + fmt(sc.p1ix) + " เป็น " + fmt(sc.p1fx) + " kg·m/s แรงดลของกำแพงคือ I = Δp = " + fmt(sc.J1x) + " N·s อัตราเร็วไม่เปลี่ยนจึงได้พลังงานจลน์ก่อนเท่ากับหลัง"
+      },
+      {
+        h: "แรงมากไม่ได้แปลว่าชนนาน",
+        p: "แรงดล I = Δp ขึ้นกับมวลและความเร็วที่เปลี่ยน ไม่ได้ใหญ่ขึ้นเพียงเพราะเวลาชนนาน จาก F = Δp / Δt ถ้า Δp เท่าเดิม เวลาสัมผัสยิ่งสั้น แรงเฉลี่ยยิ่งมาก ลองลด Δt แล้วดูกราฟ F–t สูงขึ้น ทั้งที่พื้นที่ใต้กราฟยังเท่ากับแรงดลเดิม"
+      },
+      vector
+    ];
+  }
+  if (sc.mode === 3) {
+    const massNote = Math.max(sc.m1, sc.m2) / Math.min(sc.m1, sc.m2) >= 1.5
+      ? " ก้อนที่เบากว่าได้ความเร็วหลังดีดมากกว่า เพราะแรงดลภายในขนาดเท่ากันแต่คนละทิศ"
+      : " ถ้ามวลเท่ากันและระบบเริ่มนิ่ง สองก้อนจะแยกด้วยอัตราเร็วเท่ากันคนละทาง";
+    return [
+      {
+        h: "การระเบิดไม่ได้ทำลายการอนุรักษ์โมเมนตัม",
+        p: "สปริงดันออกด้วยแรงภายใน เป็นคู่ปฏิกิริยาขนาดเท่ากันทิศตรงข้าม โมเมนตัมรวมก่อนและหลังจึงเท่ากันที่ " + fmt(sc.Pix) + " kg·m/s" + massNote
+      },
+      {
+        h: "พลังงานจลน์ของการดีดตัวเพิ่มขึ้นได้",
+        p: "การชนทั่วไปมักเสียพลังงานจลน์เป็นความร้อน แต่การดีดด้วยสปริงได้พลังงานศักย์ยืดหยุ่นมาเพิ่ม พลังงานจลน์จึงเพิ่มขึ้น " + fmt(Math.max(0, -sc.loss)) + " J โมเมนตัมคงที่ไม่ได้แปลว่าพลังงานจลน์ต้องคงที่"
+      },
+      vector
+    ];
+  }
+  const items = [vector];
+  if (!sc.will) {
+    items.unshift({
+      h: sc.miss === "graze" ? "เฉียดกันจนแรงตามแนวชนเป็นศูนย์" : "วัตถุชุดนี้ยังไม่เข้าชนกัน",
+      p: sc.miss === "graze"
+        ? "เมื่อ θ = 90° แนวชนตั้งฉากกับความเร็ว ความเร็วตามแนวชนเป็นศูนย์ จึงไม่มีการถ่ายโมเมนตัม ลองลด θ เพื่อให้ชนกันจริง"
+        : "ก้อนซ้ายอยู่ทางซ้าย การชนจะเกิดเมื่อองค์ประกอบตามแนวชนของวัตถุ 1 พุ่งเข้าหาวัตถุ 2 ใน 1 มิติเงื่อนไขนี้คือ u₁ > u₂ ลองปรับความเร็วแล้วเล่นใหม่"
+    });
+  } else if (sc.e >= 0.999) {
+    items.unshift({
+      h: "กรณีนี้พลังงานจลน์อนุรักษ์ เพราะ e = 1",
+      p: "หลายคนจำว่าพลังงานจลน์อนุรักษ์ทุกครั้งที่ชนกัน ความจริงข้อนั้นใช้ได้เฉพาะการชนแบบยืดหยุ่นสมบูรณ์ ลองเลื่อน e ลง จะเห็น ΔEk เป็นบวก ทั้งที่โมเมนตัมรวมยังเท่าเดิม"
+    });
+  } else if (sc.e <= 0.001) {
+    items.unshift({
+      h: "e = 0 แล้วพลังงานจลน์หายมากที่สุด",
+      p: sc.mode === 4
+        ? "e = 0 ทำให้ความเร็วตามแนวชนเท่ากันหลังชน แต่แนวสัมผัสยังต่างกันได้เพราะไม่มีแรงเสียดทาน วัตถุจึงไม่จำเป็นต้องติดกันทั้งก้อน โมเมนตัมยังอนุรักษ์ และพลังงานจลน์สูญเสีย " + fmt(sc.loss) + " J"
+        : "e = 0 คือไม่คืนตัว สองก้อนเคลื่อนที่ด้วยความเร็วเดียวกันหลังชน โมเมนตัมของระบบปิดยังอนุรักษ์ แต่พลังงานจลน์ที่สูญเสีย " + fmt(sc.loss) + " J ไปเป็นความร้อนและการเปลี่ยนรูปถาวร"
+    });
+  } else {
+    items.unshift(energyFalse);
+  }
+  if (sc.mode === 4) {
+    items.push({
+      h: "ในสองมิติต้องอนุรักษ์แยกทีละแนว",
+      p: "โมเมนตัมแนว x และแนว y อนุรักษ์แยกกัน มุม θ คือมุมระหว่างแนวชนกับแนวราบ ผิวเรียบจึงไม่มีแรงตามแนวสัมผัส องค์ประกอบนั้นของความเร็วจึงไม่เปลี่ยนจากตอนก่อนชน"
+    });
+  }
+  return items;
+}
+
+function equationLines(sc) {
+  const lines = [];
+  lines.push("p = mv &nbsp;&nbsp; แรงดล I = Δp = FΔt = ∫ F dt");
+  if (sc.mode === 1) {
+    lines.push("กำแพงนิ่งและคืนตัวสมบูรณ์ จึงได้ v₁ = −u₁ = " + fmtSigned(sc.v1x) + " m/s");
+    lines.push("Δp = m₁(v₁ − u₁) = (" + fmt(sc.m1, 1) + ")(" + fmt(sc.v1x) + " − " + fmtSigned(sc.u1x) + ") = " + fmt(sc.J1x) + " kg·m/s");
+    lines.push("I = Δp = " + fmt(sc.J1x) + " N·s");
+    lines.push("F₍เฉลี่ย₎ = Δp / Δt = " + fmt(sc.J1x) + " / " + fmt(sc.dt, 2) + " = " + fmt(sc.F1x) + " N");
+    lines.push("พลังงานจลน์ก่อน = หลัง = " + fmt(sc.Eki) + " J เพราะอัตราเร็วไม่เปลี่ยน มีแต่ทิศที่กลับ");
+    if (!sc.will) lines.push("u₁ = 0 ไม่มีการเปลี่ยนโมเมนตัม จึงไม่มีแรงดล");
+    return lines;
+  }
+  if (sc.mode === 3) {
+    const P = sc.m1 * sc.inputU1 + sc.m2 * sc.inputU2;
+    lines.push("ก่อนดีด วัตถุติดกัน โมเมนตัมรวม P = m₁u₁ + m₂u₂");
+    lines.push("P = (" + fmt(sc.m1, 1) + ")(" + fmtSigned(sc.inputU1, 0) + ") + (" + fmt(sc.m2, 1) + ")(" + fmtSigned(sc.inputU2, 0) + ") = " + fmt(P) + " kg·m/s");
+    lines.push("u_cm = P / (m₁ + m₂) = " + fmt(sc.ucm) + " m/s &nbsp;ทั้งสองก้อนก่อนดีดจึงมีความเร็วเท่านี้");
+    lines.push("ความเร็วสัมพัทธ์หลังดีด v_rel = " + fmt(sc.vrel) + " m/s" + (sc.usedDefaultVrel ? " (ใช้ 8 m/s เพราะ |u₁ − u₂| น้อยมาก)" : " จาก |u₁ − u₂|"));
+    lines.push("v₁ = u_cm − m₂ v_rel / (m₁ + m₂) = " + fmt(sc.v1x) + " m/s");
+    lines.push("v₂ = u_cm + m₁ v_rel / (m₁ + m₂) = " + fmt(sc.v2x) + " m/s");
+    lines.push("ตรวจการอนุรักษ์: m₁v₁ + m₂v₂ = " + fmt(sc.Pfx) + " kg·m/s");
+    lines.push("พลังงานจลน์เพิ่มขึ้น " + fmt(-sc.loss) + " J จากพลังงานศักย์ของสปริง");
+    return lines;
+  }
+
+  const m1 = sc.m1;
+  const m2 = sc.m2;
+  const e = sc.e;
+  if (sc.mode === 4) {
+    lines.push("แนวชน n̂ = (cos θ, sin θ) = (" + fmt(sc.nx) + ", " + fmt(sc.ny) + ") ที่ θ = " + fmt(sc.theta, 0) + "°");
+    lines.push("ใช้สูตรการชน 1 มิติกับองค์ประกอบตามแนว n เท่านั้น แนวสัมผัสไม่เปลี่ยน");
+  }
+  lines.push("m₁u₁ + m₂u₂ = m₁v₁ + m₂v₂");
+  if (sc.mode === 2) {
+    lines.push("(" + fmt(m1, 1) + ")(" + fmtSigned(sc.inputU1, 0) + ") + (" + fmt(m2, 1) + ")(" + fmtSigned(sc.inputU2, 0) + ") = " + fmt(sc.Pix) + " kg·m/s");
+  } else {
+    lines.push("Px ก่อน = " + fmt(sc.Pix) + " kg·m/s , Py ก่อน = " + fmt(sc.Piy) + " kg·m/s");
+  }
+  if (!sc.will) {
+    lines.push("ไม่เกิดการชน จึงได้ v₁ = u₁ และ v₂ = u₂");
+    if (sc.miss === "graze") lines.push("θ = 90° ทำให้ความเร็วตามแนวชนเป็นศูนย์ วัตถุเฉียดกันโดยไม่มีแรงดล");
+    else lines.push("เงื่อนไขการเข้าชนในแนวนี้คือความเร็วตามแนวชนของวัตถุ 1 ต้องมากกว่าวัตถุ 2");
+    return lines;
+  }
+  if (sc.mode === 2) {
+    const num1 = (m1 - e * m2) * sc.inputU1 + m2 * (1 + e) * sc.inputU2;
+    const num2 = m1 * (1 + e) * sc.inputU1 + (m2 - e * m1) * sc.inputU2;
+    const den = m1 + m2;
+    lines.push("e = (v₂ − v₁) / (u₁ − u₂) = " + fmt(e, 2));
+    lines.push("v₁ = [(m₁ − e m₂)u₁ + m₂(1+e)u₂] / (m₁+m₂)");
+    lines.push("v₁ = [" + fmt(num1) + "] / " + fmt(den, 1) + " = " + fmt(num1 / den) + " m/s");
+    lines.push("v₂ = [m₁(1+e)u₁ + (m₂ − e m₁)u₂] / (m₁+m₂)");
+    lines.push("v₂ = [" + fmt(num2) + "] / " + fmt(den, 1) + " = " + fmt(num2 / den) + " m/s");
+  } else {
+    lines.push("e = (v₂n − v₁n) / (u₁n − u₂n) = " + fmt(e, 2));
+    lines.push("u₁n = " + fmt(sc.u1n) + " m/s , u₂n = " + fmt(sc.u2n) + " m/s");
+    lines.push("v₁n = " + fmt(sc.v1n) + " m/s , v₂n = " + fmt(sc.v2n) + " m/s");
+    lines.push("v₁ = (" + fmt(sc.v1x) + ", " + fmt(sc.v1y) + ") m/s");
+    lines.push("v₂ = (" + fmt(sc.v2x) + ", " + fmt(sc.v2y) + ") m/s");
+    lines.push("Px หลัง = " + fmt(sc.Pfx) + " , Py หลัง = " + fmt(sc.Pfy) + " kg·m/s");
+  }
+  return lines;
+}
+
+function pText(sc, x, y) {
+  if (sc.mode === 4) return "Px " + fmt(x) + "<br>Py " + fmt(y);
+  return fmt(x);
+}
+
+function velText(vx, vy, twoD) {
+  if (twoD) return "(" + fmt(vx) + ", " + fmt(vy) + ")";
+  return fmt(vx);
+}
+
+function analysisTable(sc) {
+  const two = sc.mode === 4;
+  if (sc.wall) {
+    return "<table><thead><tr><th>ปริมาณ</th><th>ก่อนชน</th><th>หลังชน</th></tr></thead><tbody>"
+      + row("ความเร็วลูกบอล (m/s)", fmt(sc.u1x), fmt(sc.v1x))
+      + row("โมเมนตัมลูกบอล (kg·m/s)", fmt(sc.p1ix), fmt(sc.p1fx))
+      + row("พลังงานจลน์ (J)", fmt(sc.Ek1i), fmt(sc.Ek1f))
+      + row("แรงดล I (N·s)", "0", fmt(sc.J1x))
+      + row("แรงเฉลี่ย (N)", "0", fmt(sc.F1x))
+      + "</tbody></table>";
+  }
+  let html = "<table><thead><tr><th>ปริมาณ</th><th>วัตถุ 1</th><th>วัตถุ 2</th></tr></thead><tbody>";
+  if (sc.mode === 3) {
+    html += row2("u จากตัวเลื่อน (m/s)", fmtSigned(sc.inputU1, 0), fmtSigned(sc.inputU2, 0));
+    html += row2("ความเร็วก่อนดีด (m/s)", fmt(sc.u1x), fmt(sc.u2x));
+  } else {
+    html += row2("ความเร็วก่อน (m/s)", velText(sc.u1x, sc.u1y, two), velText(sc.u2x, sc.u2y, two));
+  }
+  html += row2(sc.mode === 3 ? "ความเร็วหลังดีด (m/s)" : "ความเร็วหลัง (m/s)", velText(sc.v1x, sc.v1y, two), velText(sc.v2x, sc.v2y, two));
+  html += row2("โมเมนตัมก่อน", velText(sc.p1ix, sc.p1iy, two), velText(sc.p2ix, sc.p2iy, two));
+  html += row2("โมเมนตัมหลัง", velText(sc.p1fx, sc.p1fy, two), velText(sc.p2fx, sc.p2fy, two));
+  html += row2("พลังงานจลน์ก่อน (J)", fmt(sc.Ek1i), fmt(sc.Ek2i));
+  html += row2("พลังงานจลน์หลัง (J)", fmt(sc.Ek1f), fmt(sc.Ek2f));
+  html += "</tbody></table>";
+  return html;
+}
+
+function row(name, a, b) {
+  return "<tr><td>" + name + "</td><td class=\"c1\">" + a + "</td><td class=\"c1\">" + b + "</td></tr>";
+}
+function row2(name, a, b) {
+  return "<tr><td>" + name + "</td><td class=\"c1\">" + a + "</td><td class=\"c2\">" + b + "</td></tr>";
+}
+
+function barGroups(sc) {
+  const groups = [];
+  if (sc.wall) {
+    groups.push({
+      title: "โมเมนตัมลูกบอล (kg·m/s)",
+      signed: true,
+      rows: [
+        { label: "p ก่อน", value: sc.p1ix, color: "rgba(20,184,166,0.45)" },
+        { label: "p หลัง", value: sc.p1fx, color: "#14b8a6" }
+      ]
+    });
+  } else if (sc.mode === 4) {
+    groups.push(pGroup("โมเมนตัมแนว x", sc.p1ix, sc.p1fx, sc.p2ix, sc.p2fx, sc.Pix, sc.Pfx));
+    groups.push(pGroup("โมเมนตัมแนว y", sc.p1iy, sc.p1fy, sc.p2iy, sc.p2fy, sc.Piy, sc.Pfy));
+  } else {
+    groups.push(pGroup("โมเมนตัม (kg·m/s)", sc.p1ix, sc.p1fx, sc.p2ix, sc.p2fx, sc.Pix, sc.Pfx));
+  }
+  const eRows = [
+    { label: "Ek₁ ก่อน", value: sc.Ek1i, color: "rgba(20,184,166,0.45)" },
+    { label: "Ek₁ หลัง", value: sc.Ek1f, color: "#14b8a6" }
+  ];
+  if (!sc.wall) {
+    eRows.push(
+      { label: "Ek₂ ก่อน", value: sc.Ek2i, color: "rgba(240,162,2,0.45)" },
+      { label: "Ek₂ หลัง", value: sc.Ek2f, color: "#f0a202" }
+    );
+  }
+  eRows.push(
+    { label: "รวมก่อน", value: sc.Eki, color: "rgba(213,226,236,0.45)" },
+    { label: "รวมหลัง", value: sc.Ekf, color: "#d5e2ec" }
+  );
+  groups.push({ title: "พลังงานจลน์ (J)", signed: false, rows: eRows });
+  return groups;
+}
+
+function pGroup(title, a0, a1, b0, b1, t0, t1) {
+  return {
+    title: title,
+    signed: true,
+    rows: [
+      { label: "p₁ ก่อน", value: a0, color: "rgba(20,184,166,0.45)" },
+      { label: "p₁ หลัง", value: a1, color: "#14b8a6" },
+      { label: "p₂ ก่อน", value: b0, color: "rgba(240,162,2,0.45)" },
+      { label: "p₂ หลัง", value: b1, color: "#f0a202" },
+      { label: "รวมก่อน", value: t0, color: "rgba(213,226,236,0.45)" },
+      { label: "รวมหลัง", value: t1, color: "#d5e2ec" }
+    ]
+  };
+}
+
+const S = { mode: 1, playing: false, speed: 1 };
+const sim = resetSimShape();
+
+function resetSimShape() {
+  return {
+    x1: -5.2, y1: 0, x2: 0, y2: 0,
+    vx1: 10, vy1: 0, vx2: 0, vy2: 0,
+    phase: "approach",
+    contactT: 0,
+    elapsed: 0,
+    totalT: 0,
+    wallX: 7,
+    impact1x: 0, impact1y: 0, impact2x: 0, impact2y: 0,
+    trails1: [], trails2: [],
+    sparks: []
+  };
+}
+
+function placeSim(sc) {
+  const r1 = radius(sc.m1);
+  const r2 = radius(Math.max(sc.m2, 0.5));
+  sim.contactT = 0;
+  sim.elapsed = 0;
+  sim.totalT = 0;
+  sim.trails1 = [];
+  sim.trails2 = [];
+  sim.sparks = [];
+  sim.vy1 = 0;
+  sim.vy2 = 0;
+  sim.y1 = 0;
+  sim.y2 = 0;
+  if (sc.mode === 1) {
+    if (Math.abs(sc.u1x) < 1e-9) {
+      sim.x1 = -2;
+      sim.wallX = 7;
+    } else {
+      const dir = sc.u1x > 0 ? 1 : -1;
+      sim.x1 = -dir * 5.2;
+      sim.wallX = dir * 7;
+    }
+    sim.y1 = 0;
+    sim.vx1 = sc.u1x;
+    sim.vy1 = 0;
+    sim.phase = "approach";
+    return;
+  }
+  if (sc.mode === 3) {
+    const R = r1 + r2 + 1.05;
+    const M = sc.m1 + sc.m2;
+    sim.x1 = -sc.m2 * R / M;
+    sim.x2 = sim.x1 + R;
+    sim.y1 = 0;
+    sim.y2 = 0;
+    sim.vx1 = sc.u1x;
+    sim.vx2 = sc.u2x;
+    sim.phase = "armed";
+    sim.wallX = null;
+    return;
+  }
+  const th = (sc.mode === 4 ? sc.theta : 0) * Math.PI / 180;
+  const R = r1 + r2;
+  const gap = 6.2;
+  sim.x2 = 2.2;
+  sim.y2 = 0;
+  sim.x1 = sim.x2 - (R * Math.cos(th) + gap);
+  sim.y1 = -R * Math.sin(th);
+  sim.vx1 = sc.u1x;
+  sim.vy1 = sc.u1y;
+  sim.vx2 = sc.u2x;
+  sim.vy2 = sc.u2y;
+  sim.phase = "approach";
+  sim.wallX = null;
+}
+
+function beginContact(sc) {
+  if (!sc.wall) {
+    const R = radius(sc.m1) + radius(sc.m2);
+    let rx = sim.x2 - sim.x1;
+    let ry = sim.y2 - sim.y1;
+    let dist = Math.hypot(rx, ry);
+    if (dist < R - 1e-3) {
+      if (dist < 1e-6) {
+        rx = sc.nx;
+        ry = sc.ny;
+        dist = 1;
+      }
+      const ux = rx / dist;
+      const uy = ry / dist;
+      const M = sc.m1 + sc.m2;
+      const midX = (sc.m1 * sim.x1 + sc.m2 * sim.x2) / M;
+      const midY = (sc.m1 * sim.y1 + sc.m2 * sim.y2) / M;
+      sim.x1 = midX - ux * R * (sc.m2 / M);
+      sim.y1 = midY - uy * R * (sc.m2 / M);
+      sim.x2 = sim.x1 + ux * R;
+      sim.y2 = sim.y1 + uy * R;
+    }
+  }
+  sim.phase = "contact";
+  sim.contactT = 0;
+  sim.impact1x = sim.x1;
+  sim.impact1y = sim.y1;
+  sim.impact2x = sim.x2;
+  sim.impact2y = sim.y2;
+  const mx = sc.wall ? sim.x1 : (sim.x1 + sim.x2) / 2;
+  const my = sc.wall ? sim.y1 : (sim.y1 + sim.y2) / 2;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + 0.2;
+    sim.sparks.push({
+      x: mx, y: my,
+      vx: Math.cos(a) * (3 + (i % 3)),
+      vy: Math.sin(a) * (3 + (i % 3)),
+      age: 0, life: 0.35
+    });
+  }
+}
+
+function applyContactPose(sc, s) {
+  const k = Math.min(1, Math.max(0, s));
+  sim.vx1 = sc.u1x + (sc.v1x - sc.u1x) * k;
+  sim.vy1 = sc.u1y + (sc.v1y - sc.u1y) * k;
+  sim.vx2 = sc.u2x + (sc.v2x - sc.u2x) * k;
+  sim.vy2 = sc.u2y + (sc.v2y - sc.u2y) * k;
+  if (sc.wall) {
+    const dir = Math.sign(sim.wallX) || 1;
+    const squash = Math.sin(Math.PI * k) * 0.2 * radius(sc.m1);
+    sim.x1 = sim.impact1x + dir * squash;
+    sim.y1 = sim.impact1y;
+    return;
+  }
+  const M = sc.m1 + sc.m2;
+  const cmx = ((sc.m1 * sc.u1x + sc.m2 * sc.u2x) / M) * (k * sc.dt);
+  const cmy = ((sc.m1 * sc.u1y + sc.m2 * sc.u2y) / M) * (k * sc.dt);
+  const squash = Math.sin(Math.PI * k) * 0.08;
+  const nx = sc.nx;
+  const ny = sc.ny;
+  sim.x1 = sim.impact1x + cmx + nx * squash;
+  sim.y1 = sim.impact1y + cmy + ny * squash;
+  sim.x2 = sim.impact2x + cmx - nx * squash;
+  sim.y2 = sim.impact2y + cmy - ny * squash;
+}
+
+function finishContact(sc, over) {
+  applyContactPose(sc, 1);
+  sim.phase = "after";
+  sim.vx1 = sc.v1x;
+  sim.vy1 = sc.v1y;
+  sim.vx2 = sc.v2x;
+  sim.vy2 = sc.v2y;
+  const h = Math.max(0, over);
+  sim.x1 += sim.vx1 * h;
+  sim.y1 += sim.vy1 * h;
+  if (!sc.wall) {
+    sim.x2 += sim.vx2 * h;
+    sim.y2 += sim.vy2 * h;
+  }
+}
+
+function stepOnce(h, sc) {
+  if (sim.phase === "armed") {
+    sim.x1 += sc.u1x * h;
+    sim.x2 += sc.u2x * h;
+    sim.elapsed += h;
+    if (sim.elapsed >= sc.armedNeed) {
+      const over = sim.elapsed - sc.armedNeed;
+      sim.x1 -= sc.u1x * over;
+      sim.x2 -= sc.u2x * over;
+      beginContact(sc);
+      if (over > 1e-6) stepOnce(over, sc);
+    }
+    return;
+  }
+  if (sim.phase === "contact") {
+    sim.contactT += h;
+    if (sim.contactT >= sc.dt) {
+      const over = sim.contactT - sc.dt;
+      finishContact(sc, over);
+    } else {
+      applyContactPose(sc, sim.contactT / sc.dt);
+    }
+    return;
+  }
+  if (sim.phase === "after") {
+    sim.x1 += sim.vx1 * h;
+    sim.y1 += sim.vy1 * h;
+    if (!sc.wall) {
+      sim.x2 += sim.vx2 * h;
+      sim.y2 += sim.vy2 * h;
+    }
+    return;
+  }
+
+  if (sc.wall) {
+    if (!sc.will) return;
+    const r = radius(sc.m1);
+    const target = sim.wallX - Math.sign(sim.wallX) * r;
+    const vx = sim.vx1;
+    if (Math.abs(vx) < 1e-8) return;
+    const tHit = (target - sim.x1) / vx;
+    if (tHit < -1e-6) {
+      sim.x1 = target;
+      beginContact(sc);
+      return;
+    }
+    if (tHit <= h) {
+      sim.x1 += vx * tHit;
+      beginContact(sc);
+      const rem = h - tHit;
+      if (rem > 1e-6) stepOnce(rem, sc);
+    } else {
+      sim.x1 += vx * h;
+    }
+  }
+}
+
+function timeToImpact(sc) {
+  const R = radius(sc.m1) + radius(sc.m2);
+  const rx = sim.x2 - sim.x1;
+  const ry = sim.y2 - sim.y1;
+  const vx = sim.vx2 - sim.vx1;
+  const vy = sim.vy2 - sim.vy1;
+  const c = rx * rx + ry * ry - R * R;
+  if (c <= 0) return 0;
+  const a = vx * vx + vy * vy;
+  if (a < 1e-12) return Infinity;
+  const b = 2 * (rx * vx + ry * vy);
+  const disc = b * b - 4 * a * c;
+  if (disc < 0) return Infinity;
+  const sd = Math.sqrt(disc);
+  const t1 = (-b - sd) / (2 * a);
+  if (t1 >= 0) return t1;
+  return Infinity;
+}
+
+function stepOnceApproach(h, sc) {
+  if (!sc.will) {
+    sim.x1 += sim.vx1 * h;
+    sim.y1 += sim.vy1 * h;
+    sim.x2 += sim.vx2 * h;
+    sim.y2 += sim.vy2 * h;
+    return;
+  }
+  const tHit = timeToImpact(sc);
+  if (tHit <= h) {
+    const t = Math.max(0, tHit);
+    sim.x1 += sim.vx1 * t;
+    sim.y1 += sim.vy1 * t;
+    sim.x2 += sim.vx2 * t;
+    sim.y2 += sim.vy2 * t;
+    beginContact(sc);
+    const rem = h - t;
+    if (rem > 1e-6) stepOnce(rem, sc);
+  } else {
+    sim.x1 += sim.vx1 * h;
+    sim.y1 += sim.vy1 * h;
+    sim.x2 += sim.vx2 * h;
+    sim.y2 += sim.vy2 * h;
+  }
+}
+
+function advance(dt, sc) {
+  let left = dt;
+  let guard = 0;
+  while (left > 1e-6 && guard < 40) {
+    const h = Math.min(0.005, left);
+    if (sim.phase === "approach" && !sc.wall) stepOnceApproach(h, sc);
+    else stepOnce(h, sc);
+    sim.totalT += h;
+    left -= h;
+    guard += 1;
+  }
+  for (let i = sim.sparks.length - 1; i >= 0; i--) {
+    const s = sim.sparks[i];
+    s.age += dt;
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+    if (s.age >= s.life) sim.sparks.splice(i, 1);
+  }
+}
+
+function fitCanvas(canvas) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const rect = canvas.getBoundingClientRect();
+  const w = Math.max(10, Math.round(rect.width * dpr));
+  const h = Math.max(10, Math.round(rect.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx: ctx, w: rect.width, h: rect.height };
+}
+
+function worldTo(view, x, y) {
+  return [view.ox + x * view.scale, view.oy - y * view.scale];
+}
+
+function makeView(w, h) {
+  const worldW = 24;
+  const scale = w / worldW;
+  return { w: w, h: h, scale: scale, ox: w / 2, oy: h / 2, worldW: worldW, worldH: h / scale };
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color, width) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  if (len < 1.5) return;
+  const ux = dx / len;
+  const uy = dy / len;
+  const head = Math.min(13, Math.max(7, len * 0.28));
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2 - ux * head * 0.85, y2 - uy * head * 0.85);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - ux * head - uy * head * 0.48, y2 - uy * head + ux * head * 0.48);
+  ctx.lineTo(x2 - ux * head + uy * head * 0.48, y2 - uy * head - ux * head * 0.48);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawVector(ctx, view, x, y, vx, vy, scale, color, label, side, components) {
+  const mag = Math.hypot(vx, vy);
+  const [sx, sy] = worldTo(view, x, y);
+  ctx.save();
+  ctx.font = "12px Leelawadee UI, Tahoma, sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  if (mag < 0.05) {
+    ctx.fillStyle = color;
+    ctx.fillText(label + " = 0", sx + 12, sy + side);
+    ctx.restore();
+    return;
+  }
+  const px = vx * scale * view.scale;
+  const py = -vy * scale * view.scale;
+  const len = Math.hypot(px, py);
+  const ox = len > 1 ? (-py / len) * side : 0;
+  const oy = len > 1 ? (px / len) * side : side;
+  if (components) {
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "rgba(159,215,245,0.45)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx + ox, sy + oy);
+    ctx.lineTo(sx + ox + px, sy + oy);
+    ctx.lineTo(sx + ox + px, sy + oy + py);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  drawArrow(ctx, sx + ox, sy + oy, sx + ox + px, sy + oy + py, color, 2.4);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(8,12,16,0.75)";
+  ctx.strokeText(label, sx + ox + px + 6, sy + oy + py);
+  ctx.fillStyle = color;
+  ctx.fillText(label, sx + ox + px + 6, sy + oy + py);
+  ctx.restore();
+}
+
+function drawSpring(ctx, x1, y1, x2, y2, coils, amp) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+  const px = -uy;
+  const py = ux;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  for (let i = 1; i < coils; i++) {
+    const t = i / coils;
+    const ox = (i % 2 === 0 ? -1 : 1) * amp;
+    ctx.lineTo(x1 + dx * t + px * ox, y1 + dy * t + py * ox);
+  }
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+function drawBall(ctx, sx, sy, rad, stops, label) {
+  const g = ctx.createRadialGradient(sx - rad * 0.35, sy - rad * 0.4, rad * 0.1, sx, sy, Math.max(rad, 1));
+  g.addColorStop(0, stops[0]);
+  g.addColorStop(0.55, stops[1]);
+  g.addColorStop(1, stops[2]);
+  ctx.beginPath();
+  ctx.arc(sx, sy, rad, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.stroke();
+  ctx.fillStyle = "#071016";
+  ctx.font = "700 " + Math.max(12, rad * 0.7) + "px Leelawadee UI, Tahoma, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, sx, sy + 1);
+}
+
+function vecLabel(vx, vy, twoD) {
+  if (twoD) return fmt(vx) + ", " + fmt(vy);
+  return fmt(vx);
+}
+
+function phaseLabel(sc) {
+  if (sim.phase === "armed") return "ก่อนดีด · สปริงถูกอัด";
+  if (sim.phase === "contact") return sc.mode === 3 ? "ขณะสปริงดีด" : "ขณะชน";
+  if (sim.phase === "after") return sc.mode === 3 ? "หลังดีดตัว" : "หลังชน";
+  if (!sc.will && sc.mode !== 3) return "ไม่เกิดการชน";
+  return sc.mode === 3 ? "ก่อนดีด" : "ก่อนชน";
+}
+
+function drawScene(ctx, w, h, sc, showV, showP) {
+  const view = makeView(w, h);
+  ctx.clearRect(0, 0, w, h);
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, "#15202b");
+  bg.addColorStop(1, "#0d141b");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(148, 176, 196, 0.08)";
+  ctx.lineWidth = 1;
+  const left = -view.worldW / 2;
+  const right = view.worldW / 2;
+  for (let x = Math.ceil(left); x <= right; x += 1) {
+    const [sx] = worldTo(view, x, 0);
+    ctx.beginPath();
+    ctx.moveTo(sx, 0);
+    ctx.lineTo(sx, h);
+    ctx.stroke();
+  }
+  const top = view.worldH / 2;
+  for (let y = Math.ceil(-top); y <= top; y += 1) {
+    const [, sy] = worldTo(view, 0, y);
+    ctx.beginPath();
+    ctx.moveTo(0, sy);
+    ctx.lineTo(w, sy);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.strokeStyle = "rgba(232, 238, 244, 0.28)";
+  ctx.lineWidth = 1.5;
+  const [ax1] = worldTo(view, left, 0);
+  const [ax2] = worldTo(view, right, 0);
+  const [, ay] = worldTo(view, 0, 0);
+  ctx.beginPath();
+  ctx.moveTo(ax1, ay);
+  ctx.lineTo(ax2, ay);
+  ctx.stroke();
+  if (sc.mode === 4) {
+    const [, yTop] = worldTo(view, 0, top);
+    const [, yBot] = worldTo(view, 0, -top);
+    const [x0] = worldTo(view, 0, 0);
+    ctx.beginPath();
+    ctx.moveTo(x0, yTop);
+    ctx.lineTo(x0, yBot);
+    ctx.stroke();
+  }
+
+  if (sc.wall && sim.wallX !== null) {
+    const face = sim.wallX;
+    const dir = Math.sign(face) || 1;
+    const [fx] = worldTo(view, face, 0);
+    const [bx] = worldTo(view, face + dir * 1.15, 0);
+    const x0 = Math.min(fx, bx);
+    const ww = Math.abs(bx - fx);
+    ctx.fillStyle = "#3d4c5c";
+    ctx.fillRect(x0, 18, ww, h - 36);
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 2;
+    for (let y = 28; y < h - 20; y += 14) {
+      ctx.beginPath();
+      ctx.moveTo(x0 + 4, y);
+      ctx.lineTo(x0 + ww - 4, y + 8);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#d5e2ec";
+    ctx.font = "13px Leelawadee UI, Tahoma, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("กำแพง", x0 + ww / 2, 34);
+  }
+
+  if (sc.mode === 3 && (sim.phase === "armed" || sim.phase === "contact")) {
+    const [s1x, s1y] = worldTo(view, sim.x1, sim.y1);
+    const [s2x, s2y] = worldTo(view, sim.x2, sim.y2);
+    const r1 = radius(sc.m1) * view.scale;
+    const r2 = radius(sc.m2) * view.scale;
+    const dx = s2x - s1x;
+    const dy = s2y - s1y;
+    const len = Math.hypot(dx, dy) || 1;
+    ctx.strokeStyle = "#ffd166";
+    ctx.lineWidth = 2;
+    drawSpring(ctx, s1x + (dx / len) * r1, s1y + (dy / len) * r1, s2x - (dx / len) * r2, s2y - (dy / len) * r2, 9, sim.phase === "armed" ? 8 : 5);
+  }
+
+  function trace(list, color) {
+    if (list.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.35;
+    ctx.beginPath();
+    list.forEach(function (pt, i) {
+      const [sx, sy] = worldTo(view, pt.x, pt.y);
+      if (i === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
+  trace(sim.trails1, "#14b8a6");
+  if (!sc.wall) trace(sim.trails2, "#f0a202");
+
+  sim.sparks.forEach(function (s) {
+    const [sx, sy] = worldTo(view, s.x, s.y);
+    ctx.globalAlpha = 1 - s.age / s.life;
+    ctx.fillStyle = "#ffe08a";
+    ctx.beginPath();
+    ctx.arc(sx, sy, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  const r1s = Math.max(8, radius(sc.m1) * view.scale);
+  const [b1x, b1y] = worldTo(view, sim.x1, sim.y1);
+  drawBall(ctx, b1x, b1y, r1s, ["#d9fffa", "#14b8a6", "#0f766e"], "1");
+  if (!sc.wall) {
+    const r2s = Math.max(8, radius(sc.m2) * view.scale);
+    const [b2x, b2y] = worldTo(view, sim.x2, sim.y2);
+    drawBall(ctx, b2x, b2y, r2s, ["#fff0cc", "#f0a202", "#b45309"], "2");
+  }
+
+  if (!sc.wall && sc.mode !== 1) {
+    const M = sc.m1 + sc.m2;
+    const cx = (sc.m1 * sim.x1 + sc.m2 * sim.x2) / M;
+    const cy = (sc.m1 * sim.y1 + sc.m2 * sim.y2) / M;
+    const [sx, sy] = worldTo(view, cx, cy);
+    ctx.strokeStyle = "#f4fbff";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(sx - 6, sy);
+    ctx.lineTo(sx + 6, sy);
+    ctx.moveTo(sx, sy - 6);
+    ctx.lineTo(sx, sy + 6);
+    ctx.stroke();
+    ctx.font = "12px Leelawadee UI, Tahoma, sans-serif";
+    ctx.fillStyle = "#f4fbff";
+    ctx.textAlign = "left";
+    ctx.fillText("CM", sx + 8, sy - 8);
+  }
+
+  const comp = sc.mode === 4;
+  if (showV) {
+    drawVector(ctx, view, sim.x1, sim.y1, sim.vx1, sim.vy1, V_SCALE, "#9fd7f5", "v₁ " + vecLabel(sim.vx1, sim.vy1, comp), 9, comp);
+    if (!sc.wall) drawVector(ctx, view, sim.x2, sim.y2, sim.vx2, sim.vy2, V_SCALE, "#9fd7f5", "v₂ " + vecLabel(sim.vx2, sim.vy2, comp), 9, comp);
+  }
+  if (showP) {
+    drawVector(ctx, view, sim.x1, sim.y1, sc.m1 * sim.vx1, sc.m1 * sim.vy1, P_SCALE, "#ffd166", "p₁ " + vecLabel(sc.m1 * sim.vx1, sc.m1 * sim.vy1, comp), -11, false);
+    if (!sc.wall) drawVector(ctx, view, sim.x2, sim.y2, sc.m2 * sim.vx2, sc.m2 * sim.vy2, P_SCALE, "#ffd166", "p₂ " + vecLabel(sc.m2 * sim.vx2, sc.m2 * sim.vy2, comp), -11, false);
+  }
+
+  ctx.font = "13px Leelawadee UI, Tahoma, sans-serif";
+  const badge = phaseLabel(sc) + " · " + sc.typeName;
+  const bw = ctx.measureText(badge).width + 16;
+  roundRect(ctx, 12, 12, bw, 26, 8);
+  ctx.fillStyle = "rgba(8,14,20,0.78)";
+  ctx.fill();
+  ctx.fillStyle = sim.phase === "contact" ? "#ffd166" : sim.phase === "after" ? "#8fd18d" : "#9fd7f5";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText(badge, 20, 25);
+
+  ctx.fillStyle = "rgba(232,238,244,0.8)";
+  ctx.textAlign = "right";
+  ctx.fillText("t = " + sim.totalT.toFixed(2) + " s", w - 14, 25);
+  if (S.speed !== 1) ctx.fillText(S.speed + "×", w - 14, 44);
+
+  if (sc.mode === 4) {
+    const ix = w - 108;
+    const iy = 62;
+    roundRect(ctx, ix, iy, 96, 96, 10);
+    ctx.fillStyle = "rgba(8,14,20,0.72)";
+    ctx.fill();
+    const ox = ix + 28;
+    const oy = iy + 68;
+    const ang = sc.theta * Math.PI / 180;
+    ctx.strokeStyle = "#9fd7f5";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ox + 58, oy);
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ox + Math.cos(ang) * 58, oy - Math.sin(ang) * 58);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(ox, oy, 18, -ang, 0);
+    ctx.stroke();
+    ctx.fillStyle = "#ffd166";
+    ctx.textAlign = "left";
+    ctx.font = "12px Leelawadee UI, Tahoma, sans-serif";
+    ctx.fillText("θ = " + sc.theta + "°", ix + 36, iy + 20);
+  }
+
+  const [sx0] = worldTo(view, 0, 0);
+  const [sx4] = worldTo(view, 4, 0);
+  const baseY = h - 18;
+  ctx.strokeStyle = "#d5e2ec";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(sx0, baseY);
+  ctx.lineTo(sx4, baseY);
+  ctx.moveTo(sx0, baseY - 4);
+  ctx.lineTo(sx0, baseY + 4);
+  ctx.moveTo(sx4, baseY - 4);
+  ctx.lineTo(sx4, baseY + 4);
+  ctx.stroke();
+  ctx.font = "12px Leelawadee UI, Tahoma, sans-serif";
+  ctx.fillStyle = "#d5e2ec";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("4 m", (sx0 + sx4) / 2, baseY - 6);
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#9fd7f5";
+  ctx.fillText("— v", 14, h - 28);
+  ctx.fillStyle = "#ffd166";
+  ctx.fillText("— p", 14, h - 12);
+}
+
+function drawFT(ctx, w, h, sc) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#10161c";
+  ctx.fillRect(0, 0, w, h);
+  const left = 48;
+  const right = 16;
+  const top = 16;
+  const bottom = 32;
+  const pw = w - left - right;
+  const ph = h - top - bottom;
+  const y0 = top + ph / 2;
+
+  let tMax = 0.55;
+  let fCap = 10;
+  let f1 = sc.F1x;
+  let f2 = sc.wall ? 0 : sc.F2x;
+  let label = "Fx";
+  if (sc.mode === 1) {
+    tMax = 0.55;
+    const cap = Math.abs(sc.J1x) / 0.01;
+    fCap = Math.max(10, cap * 1.08);
+  } else if (sc.mode === 4) {
+    tMax = 0.2;
+    f1 = sc.J1x * sc.nx + sc.J1y * sc.ny;
+    f1 = f1 / sc.dt;
+    f2 = -f1;
+    label = "Fn";
+    fCap = Math.max(10, Math.abs(f1) * 1.35);
+  } else {
+    tMax = 0.2;
+    fCap = Math.max(10, Math.max(Math.abs(f1), Math.abs(f2)) * 1.35);
+  }
+
+  function xOf(t) { return left + (t / tMax) * pw; }
+  function yOf(f) { return y0 - (f / fCap) * (ph / 2); }
+
+  ctx.strokeStyle = "rgba(148,176,196,0.18)";
+  ctx.lineWidth = 1;
+  for (let i = 1; i <= 4; i++) {
+    const yy = top + (ph * i) / 4;
+    ctx.beginPath();
+    ctx.moveTo(left, yy);
+    ctx.lineTo(w - right, yy);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(232,238,244,0.75)";
+  ctx.beginPath();
+  ctx.moveTo(left, top);
+  ctx.lineTo(left, top + ph);
+  ctx.lineTo(w - right, top + ph);
+  ctx.moveTo(left, y0);
+  ctx.lineTo(w - right, y0);
+  ctx.stroke();
+
+  ctx.font = "11px Leelawadee UI, Tahoma, sans-serif";
+  ctx.fillStyle = "#93a8b8";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  ctx.fillText(fmt(fCap, 0), left - 6, top + 4);
+  ctx.fillText("0", left - 6, y0);
+  ctx.fillText(fmt(-fCap, 0), left - 6, top + ph - 4);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("0", left, h - 8);
+  ctx.fillText(fmt(sc.dt, 2), xOf(sc.dt), h - 8);
+  ctx.fillText("t (s)", left + pw / 2, h - 8);
+  ctx.textAlign = "left";
+  ctx.fillText(label + " (N)", left + 6, 12);
+
+  const predicting = sim.phase === "approach" || sim.phase === "armed";
+  ctx.save();
+  if (predicting) ctx.globalAlpha = 0.55;
+  function pulse(force, color) {
+    if (!sc.will && sc.mode !== 3) return;
+    const x = xOf(0);
+    const rw = Math.max(1, xOf(sc.dt) - x);
+    const y = yOf(Math.max(force, 0));
+    const hh = Math.abs(yOf(force) - y0);
+    ctx.fillStyle = color;
+    if (force >= 0) ctx.fillRect(x, y0 - hh, rw, hh);
+    else ctx.fillRect(x, y0, rw, hh);
+  }
+  pulse(f1, "rgba(20,184,166,0.85)");
+  if (!sc.wall) pulse(f2, "rgba(240,162,2,0.7)");
+  ctx.restore();
+
+  if (sim.phase === "contact" || sim.phase === "after") {
+    const tMark = sim.phase === "contact" ? Math.min(sc.dt, sim.contactT) : sc.dt;
+    ctx.strokeStyle = "#ffd166";
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(xOf(tMark), top);
+    ctx.lineTo(xOf(tMark), top + ph);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  if (!sc.will && sc.mode !== 3) {
+    ctx.fillStyle = "#d5e2ec";
+    ctx.font = "13px Leelawadee UI, Tahoma, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("ไม่เกิดแรงดล เพราะวัตถุไม่ชนกัน", left + pw / 2, y0 - 12);
+  }
+}
+
+function drawBars(ctx, w, h, sc) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#10161c";
+  ctx.fillRect(0, 0, w, h);
+  const groups = barGroups(sc);
+  const gap = 6;
+  const totalWeight = groups.length;
+  let y = 4;
+  groups.forEach(function (group) {
+    const gh = (h - 8 - gap * (totalWeight - 1)) / totalWeight;
+    drawBarGroup(ctx, group, 8, y, w - 16, gh);
+    y += gh + gap;
+  });
+}
+
+function drawBarGroup(ctx, group, x, y, w, h) {
+  ctx.fillStyle = "#9fd7f5";
+  ctx.font = "12px Leelawadee UI, Tahoma, sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText(group.title, x, y);
+  const rows = group.rows;
+  const top = y + 16;
+  const rowH = (h - 18) / rows.length;
+  let maxAbs = 0;
+  rows.forEach(function (r) { maxAbs = Math.max(maxAbs, Math.abs(r.value)); });
+  if (maxAbs < 1e-6) maxAbs = 1;
+  const labelW = 62;
+  const trackX = x + labelW;
+  const trackW = w - labelW - 52;
+  const zero = group.signed ? trackX + trackW / 2 : trackX;
+  const reach = group.signed ? trackW / 2 : trackW;
+  ctx.strokeStyle = "rgba(232,238,244,0.35)";
+  ctx.beginPath();
+  ctx.moveTo(zero, top);
+  ctx.lineTo(zero, top + rowH * rows.length - 4);
+  ctx.stroke();
+  rows.forEach(function (r, i) {
+    const cy = top + i * rowH;
+    const bh = Math.max(4, rowH - 5);
+    const len = (r.value / maxAbs) * reach;
+    ctx.fillStyle = "#93a8b8";
+    ctx.font = "11px Leelawadee UI, Tahoma, sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText(r.label, trackX - 6, cy + bh / 2);
+    ctx.fillStyle = r.color;
+    if (len >= 0) ctx.fillRect(zero, cy, Math.max(0.5, len), bh);
+    else ctx.fillRect(zero + len, cy, -len, bh);
+    ctx.fillStyle = "#e8eef4";
+    ctx.textAlign = "left";
+    ctx.textAlign = len >= 0 ? "left" : "right";
+    ctx.fillText(fmt(r.value), len >= 0 ? zero + Math.min(len, reach) + 4 : Math.max(trackX, zero + len) - 4, cy + bh / 2);
+  });
+}
+
+function currentKinematics(sc) {
+  const ek = ke(sc.m1, sim.vx1, sim.vy1) + (sc.wall ? 0 : ke(sc.m2, sim.vx2, sim.vy2));
+  const px = sc.m1 * sim.vx1 + (sc.wall ? 0 : sc.m2 * sim.vx2);
+  const py = sc.m1 * sim.vy1 + (sc.wall ? 0 : sc.m2 * sim.vy2);
+  return { ek: ek, px: px, py: py };
+}
+
+function near(a, b) {
+  return Math.abs(a - b) <= Math.max(0.06, 0.004 * Math.max(Math.abs(a), Math.abs(b), 1));
+}
+
+function init() {
+  const view = document.getElementById("view");
+  const ft = document.getElementById("ft");
+  const bars = document.getElementById("bars");
+  const m1 = document.getElementById("m1");
+  const m2 = document.getElementById("m2");
+  const u1 = document.getElementById("u1");
+  const u2 = document.getElementById("u2");
+  const e = document.getElementById("e");
+  const dt = document.getElementById("dt");
+  const theta = document.getElementById("theta");
+  const showV = document.getElementById("showV");
+  const showP = document.getElementById("showP");
+  const playBtn = document.getElementById("play");
+  let lastKey = "";
+  let lastTs = 0;
+  let trailTick = 0;
+
+  function readParams() {
+    return {
+      mode: S.mode,
+      m1: parseFloat(m1.value),
+      m2: parseFloat(m2.value),
+      u1: parseFloat(u1.value),
+      u2: parseFloat(u2.value),
+      e: Math.round(parseFloat(e.value) * 100) / 100,
+      dt: Math.round(parseFloat(dt.value) * 100) / 100,
+      theta: parseFloat(theta.value)
+    };
+  }
+
+  function paintRange(el) {
+    const min = parseFloat(el.min);
+    const max = parseFloat(el.max);
+    const val = parseFloat(el.value);
+    const pct = ((val - min) / (max - min)) * 100;
+    if (min < 0 && max > 0) {
+      const z = ((0 - min) / (max - min)) * 100;
+      const a = Math.min(pct, z);
+      const b = Math.max(pct, z);
+      el.style.background = "linear-gradient(90deg,#2c3944 " + a + "%,#14b8a6 " + a + "%,#14b8a6 " + b + "%,#2c3944 " + b + "%)";
+    } else {
+      el.style.background = "linear-gradient(90deg,#14b8a6 " + pct + "%,#2c3944 " + pct + "%)";
+    }
+  }
+
+  function syncOutputs() {
+    document.getElementById("o-m1").textContent = parseFloat(m1.value).toFixed(1) + " kg";
+    document.getElementById("o-m2").textContent = parseFloat(m2.value).toFixed(1) + " kg";
+    document.getElementById("o-u1").textContent = fmtSigned(parseFloat(u1.value), 0) + " m/s";
+    document.getElementById("o-u2").textContent = fmtSigned(parseFloat(u2.value), 0) + " m/s";
+    document.getElementById("o-e").textContent = parseFloat(e.value).toFixed(2);
+    document.getElementById("o-dt").textContent = parseFloat(dt.value).toFixed(2) + " s";
+    document.getElementById("o-th").textContent = parseFloat(theta.value).toFixed(0) + "°";
+    [m1, m2, u1, u2, e, dt, theta].forEach(paintRange);
+    document.querySelectorAll("[data-e]").forEach(function (btn) {
+      btn.classList.toggle("active", Math.abs(parseFloat(btn.dataset.e) - parseFloat(e.value)) < 0.001);
+    });
+  }
+
+  function syncMode() {
+    document.querySelectorAll("[data-mode]").forEach(function (btn) {
+      const on = parseInt(btn.dataset.mode, 10) === S.mode;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    document.querySelectorAll("[data-modes]").forEach(function (el) {
+      el.hidden = el.dataset.modes.split(",").indexOf(String(S.mode)) === -1;
+    });
+    document.getElementById("hint").textContent = hints(S.mode);
+  }
+
+  function restart() {
+    placeSim(solve(readParams()));
+    lastKey = "";
+  }
+
+  function updatePanels(sc) {
+    const key = [sc.mode, sc.m1, sc.m2, sc.inputU1, sc.inputU2, sc.e, sc.dt, sc.theta, sc.will, sc.miss].join("|");
+    if (key !== lastKey) {
+      lastKey = key;
+      const pCons = near(sc.Pix, sc.Pfx) && near(sc.Piy, sc.Pfy);
+      document.getElementById("lab-pi").textContent = sc.wall ? "โมเมนตัมก่อนชน" : "โมเมนตัมรวมก่อน";
+      document.getElementById("lab-pf").textContent = sc.wall ? "โมเมนตัมหลังชน" : "โมเมนตัมรวมหลัง";
+      document.getElementById("val-pi").innerHTML = pText(sc, sc.Pix, sc.Piy);
+      document.getElementById("val-pf").innerHTML = pText(sc, sc.Pfx, sc.Pfy);
+      document.getElementById("val-ki").textContent = fmt(sc.Eki);
+      document.getElementById("val-kf").textContent = fmt(sc.Ekf);
+      document.getElementById("val-dk").textContent = fmt(sc.loss);
+      document.getElementById("sub-pf").textContent = sc.wall
+        ? "ไม่ถูกอนุรักษ์ · มีแรงภายนอก"
+        : (pCons ? "อนุรักษ์แล้ว · kg·m/s" : "kg·m/s");
+      const remain = sc.Eki > 0.05 ? Math.round((sc.Ekf / sc.Eki) * 100) : null;
+      document.getElementById("sub-kf").textContent = remain === null ? "J" : "เหลือ " + remain + "% · J";
+      const cardP = document.getElementById("card-pf");
+      cardP.classList.toggle("ok", !sc.wall && pCons);
+      cardP.classList.toggle("bad", sc.wall || !pCons);
+      const cardK = document.getElementById("card-kf");
+      cardK.classList.toggle("ok", near(sc.Eki, sc.Ekf));
+      cardK.classList.toggle("bad", sc.loss > 0.08);
+      cardK.classList.toggle("gain", sc.loss < -0.08);
+      const cardD = document.getElementById("card-dk");
+      cardD.classList.remove("ok", "bad", "gain");
+      if (sc.loss > 0.08) cardD.classList.add("bad");
+      else if (sc.loss < -0.08) cardD.classList.add("gain");
+      else cardD.classList.add("ok");
+      document.getElementById("eq").innerHTML = equationLines(sc).map(function (line) {
+        return "<p><code>" + line + "</code></p>";
+      }).join("");
+      document.getElementById("table").innerHTML = analysisTable(sc);
+      document.getElementById("myths").innerHTML = mythsFor(sc).map(function (m) {
+        return "<article class=\"myth\"><h3>" + m.h + "</h3><p>" + m.p + "</p></article>";
+      }).join("");
+      const iMag = Math.hypot(sc.J1x, sc.J1y);
+      const fMag = Math.hypot(sc.F1x, sc.F1y);
+      let cap = "พื้นที่คิดเครื่องหมายใต้กราฟ = แรงดล I";
+      if (sc.mode === 1) {
+        cap = "I = " + fmt(sc.J1x) + " N·s · Fเฉลี่ย = " + fmt(sc.F1x) + " N · แกนแรงตรึงที่ |Δp| / 0.01 s เพื่อให้เห็นว่า Δt สั้นแล้วแรงสูงขึ้น ทั้งที่พื้นที่เท่าเดิม";
+      } else if (!sc.will) {
+        cap = "ไม่มีช่วงชน จึงไม่มีพื้นที่ใต้กราฟ";
+      } else if (sc.mode === 4) {
+        cap = "กราฟนี้เป็นแรงตามแนวชน ซึ่งกระทำต่อสองวัตถุเท่ากันคนละทิศ แรงสุทธิต่อระบบเป็นศูนย์ โมเมนตัมรวมจึงไม่เปลี่ยน";
+      } else {
+        cap = "แรงเฉลี่ยต่อวัตถุ 1 = " + fmt(fMag) + " N · แรงดล |" + "I" + "| = " + fmt(iMag) + " N·s · แรงสองก้อนเท่ากันคนละทิศ พื้นที่สุทธิเป็นศูนย์";
+      }
+      document.getElementById("ft-caption").textContent = cap;
+    }
+
+    const now = currentKinematics(sc);
+    let live = "<strong>" + phaseLabel(sc) + "</strong> · โมเมนตัมขณะนี้ ";
+    live += sc.mode === 4 ? ("Px " + fmt(now.px) + " , Py " + fmt(now.py)) : fmt(now.px);
+    live += " kg·m/s · พลังงานจลน์ขณะนี้ " + fmt(now.ek) + " J";
+    if (!S.playing && sim.totalT === 0) live += " · กดเล่นเพื่อดูการเคลื่อนที่";
+    if (sim.phase === "contact" && sc.mode === 1) live += " · ระหว่างสัมผัส พลังงานจลน์ยุบตัวชั่วคราว แล้วกลับคืนเพราะชนแบบยืดหยุ่น";
+    document.getElementById("live").innerHTML = live;
+    playBtn.textContent = S.playing ? "หยุดชั่วคราว" : "เล่น";
+    playBtn.classList.toggle("active", S.playing);
+  }
+
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    const raw = lastTs ? Math.min(0.05, (ts - lastTs) / 1000) : 0;
+    lastTs = ts;
+    const sc = solve(readParams());
+    if (S.playing) {
+      advance(raw * S.speed, sc);
+      trailTick += raw * S.speed;
+      if (trailTick > 0.02) {
+        trailTick = 0;
+        sim.trails1.push({ x: sim.x1, y: sim.y1 });
+        if (!sc.wall) sim.trails2.push({ x: sim.x2, y: sim.y2 });
+        if (sim.trails1.length > 90) sim.trails1.shift();
+        if (sim.trails2.length > 90) sim.trails2.shift();
+      }
+    }
+    const a = fitCanvas(view);
+    const b = fitCanvas(ft);
+    const c = fitCanvas(bars);
+    if (a.w > 20 && a.h > 20) drawScene(a.ctx, a.w, a.h, sc, showV.checked, showP.checked);
+    if (b.w > 20) drawFT(b.ctx, b.w, b.h, sc);
+    if (c.w > 20) drawBars(c.ctx, c.w, c.h, sc);
+    updatePanels(sc);
+  }
+
+  document.querySelectorAll("[data-mode]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      S.mode = parseInt(btn.dataset.mode, 10);
+      S.playing = false;
+      syncMode();
+      restart();
+    });
+  });
+  document.querySelectorAll("[data-e]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      e.value = btn.dataset.e;
+      syncOutputs();
+      restart();
+    });
+  });
+  [m1, m2, u1, u2, e, dt, theta].forEach(function (el) {
+    el.addEventListener("input", function () {
+      syncOutputs();
+      restart();
+    });
+  });
+  document.querySelectorAll("[data-speed]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      S.speed = parseFloat(btn.dataset.speed);
+      document.querySelectorAll("[data-speed]").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+    });
+  });
+  playBtn.addEventListener("click", function () {
+    S.playing = !S.playing;
+  });
+  document.getElementById("reset").addEventListener("click", function () {
+    S.playing = false;
+    restart();
+  });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.code === "Space" && ev.target === document.body) {
+      ev.preventDefault();
+      S.playing = !S.playing;
+    }
+  });
+  window.addEventListener("resize", function () { lastKey = ""; });
+  window.addEventListener("error", function (ev) {
+    const live = document.getElementById("live");
+    if (live) live.textContent = "เกิดข้อผิดพลาดในการจำลอง: " + ev.message;
+  });
+
+  syncMode();
+  syncOutputs();
+  restart();
+  requestAnimationFrame(frame);
+}
+
+init();
+</script>
+</body>
+</html>
