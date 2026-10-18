@@ -38,43 +38,162 @@
     line-height: 1.45;
   }
   button, input { font-family: inherit; }
-  .app { width: min(1480px, 100%); margin: 0 auto; padding: 16px 16px 28px; }
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 16px;
-    margin-bottom: 14px;
+  html, body { height: 100%; overflow: hidden; }
+  .stage {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: #10161c;
   }
-  .brand { display: flex; gap: 12px; align-items: center; }
-  .logo { width: 46px; height: 46px; position: relative; flex: none; }
+  .stage canvas { width: 100%; height: 100%; }
+  .glass {
+    background: rgba(14, 20, 28, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+    backdrop-filter: blur(14px);
+  }
+  .hud-title {
+    position: fixed;
+    z-index: 20;
+    top: 14px;
+    left: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 14px 8px 10px;
+    border-radius: 16px;
+    pointer-events: none;
+  }
+  .brand { display: flex; gap: 10px; align-items: center; }
+  .logo { width: 36px; height: 36px; position: relative; flex: none; }
   .logo::before, .logo::after {
     content: "";
     position: absolute;
     border-radius: 50%;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
   }
-  .logo::before { width: 26px; height: 26px; background: var(--teal); left: 0; bottom: 4px; }
-  .logo::after { width: 20px; height: 20px; background: var(--amber); right: 0; top: 4px; }
-  h1 { font-size: 26px; line-height: 1.15; margin: 0; letter-spacing: 0; }
-  header p { margin: 3px 0 0; color: var(--muted); font-size: 13.5px; }
-  .assume { text-align: right; max-width: 340px; }
-  .layout {
+  .logo::before { width: 20px; height: 20px; background: var(--teal); left: 0; bottom: 2px; }
+  .logo::after { width: 15px; height: 15px; background: var(--amber); right: 0; top: 2px; }
+  h1 { font-size: 18px; line-height: 1.15; margin: 0; }
+  .hud-title p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+  .live {
+    position: fixed;
+    z-index: 20;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(640px, calc(100vw - 360px));
+    padding: 8px 14px;
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .live strong { color: var(--ink); font-weight: 700; }
+  .metrics {
+    position: fixed;
+    z-index: 20;
+    left: 50%;
+    bottom: 84px;
+    transform: translateX(-50%);
+    width: min(860px, calc(100vw - 300px));
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr) 330px;
-    gap: 14px;
-    align-items: start;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    pointer-events: none;
   }
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
+  .playbar {
+    position: fixed;
+    z-index: 40;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 999px;
   }
-  .controls, .side { padding: 14px; }
-  @media (min-width: 1181px) {
-    .controls, .side { max-height: calc(100vh - 108px); overflow: auto; }
-    .stage-wrap { max-height: calc(100vh - 108px); overflow: auto; }
+  .playbar button {
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .playbar button.active { background: var(--teal); color: #06221e; }
+  .fab {
+    position: fixed;
+    z-index: 40;
+    bottom: 18px;
+    height: 52px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #182430;
+    color: var(--ink);
+    font-weight: 750;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+  }
+  .fab.left { left: 16px; }
+  .fab.right { right: 16px; }
+  .fab.open { background: var(--teal); color: #06221e; border-color: var(--teal); }
+  .pop {
+    position: fixed;
+    z-index: 30;
+    bottom: 82px;
+    width: min(400px, calc(100vw - 24px));
+    max-height: min(76vh, 820px);
+    overflow: auto;
+    padding: 14px;
+    border-radius: 18px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(22px) scale(0.92);
+    transform-origin: bottom left;
+  }
+  .pop-controls { left: 16px; }
+  .pop-graphs {
+    right: 16px;
+    left: auto;
+    width: min(460px, calc(100vw - 24px));
+    transform-origin: bottom right;
+  }
+  .pop.open {
+    visibility: visible;
+    pointer-events: auto;
+    animation: pop-in 0.46s cubic-bezier(0.16, 1.35, 0.4, 1) forwards;
+  }
+  @keyframes pop-in {
+    0% { opacity: 0; transform: translateY(26px) scale(0.9); }
+    58% { opacity: 1; transform: translateY(-8px) scale(1.035); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .pop-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .pop-head h2 { margin: 0; }
+  .pop-close {
+    border: 0;
+    background: #243140;
+    color: var(--ink);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
   }
   h2 {
     margin: 0 0 8px;
@@ -198,38 +317,16 @@
   .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
   .dot.a { background: var(--teal); }
   .dot.b { background: var(--amber); }
-  .stage-wrap { padding: 12px; }
-  .stage {
-    position: relative;
-    height: min(430px, 50vh);
-    min-height: 300px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #10161c;
-    border: 1px solid #243140;
-  }
   canvas { width: 100%; height: 100%; display: block; }
-  .graph-ft { height: 200px; background: #10161c; border-radius: 12px; border: 1px solid #243140; }
-  .graph-bar { height: 320px; background: #10161c; border-radius: 12px; border: 1px solid #243140; }
-  .live {
-    margin-top: 8px;
-    min-height: 2.7em;
-    color: var(--muted);
-    font-size: 13.5px;
-    font-variant-numeric: tabular-nums;
-  }
-  .live strong { color: var(--ink); font-weight: 700; }
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 8px;
-  }
+  .graph-ft { height: 180px; background: #10161c; border-radius: 12px; border: 1px solid #243140; }
+  .graph-bar { height: 250px; background: #10161c; border-radius: 12px; border: 1px solid #243140; }
   .metric {
-    background: var(--panel-2);
-    border: 1px solid var(--line);
+    background: rgba(20, 30, 40, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    padding: 8px 8px 7px;
+    padding: 7px 8px 6px;
     min-width: 0;
+    backdrop-filter: blur(10px);
   }
   .metric h3 { margin: 0; font-size: 12px; color: var(--muted); font-weight: 650; }
   .metric p {
@@ -250,7 +347,7 @@
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 10px 12px;
-    max-height: 190px;
+    max-height: 160px;
     overflow: auto;
     font-size: 13.5px;
     line-height: 1.55;
@@ -279,49 +376,69 @@
   .myth h3 { margin: 0 0 4px; color: #ffd27a; font-size: 13.5px; }
   .myth p { margin: 0; color: #f6ead8; font-size: 13px; line-height: 1.55; }
   button:focus-visible, input:focus-visible { outline: 2px solid var(--vel); outline-offset: 2px; }
-  @media (max-width: 1180px) {
-    .layout { grid-template-columns: 280px minmax(0, 1fr); }
-    .side { grid-column: 1 / -1; }
-    header { flex-direction: column; align-items: flex-start; }
-    .assume { text-align: left; }
-  }
-  @media (max-width: 760px) {
-    .layout { grid-template-columns: 1fr; }
-    h1 { font-size: 22px; }
-    .metrics { grid-template-columns: 1fr 1fr; }
+  .pop h2 { margin-top: 12px; }
+  .pop h2:first-child, .pop-head h2 { margin-top: 0; }
+  @media (max-width: 900px) {
+    .live { display: none; }
+    .metrics {
+      width: calc(100vw - 20px);
+      bottom: 148px;
+      grid-template-columns: 1fr 1fr;
+    }
     .metric:last-child { grid-column: 1 / -1; }
-    .presets, .transport, .speeds { flex-wrap: wrap; }
+    .playbar { bottom: 78px; }
+    .fab { bottom: 14px; }
+    .pop { bottom: 76px; max-height: 62vh; }
   }
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="brand">
-      <div class="logo" aria-hidden="true"></div>
-      <div>
-        <h1>โมเมนตัมและการชน</h1>
-        <p>สื่อจำลองเชิงโต้ตอบ · ฟิสิกส์ ม.4–ม.6</p>
-      </div>
-    </div>
-    <p class="assume">หน่วย SI · พื้นไร้ความเสียดทาน · ไม่มีแรงต้านอากาศ<br>ขวาเป็น + · ซ้ายเป็น − · ขึ้นเป็น +</p>
-  </header>
+<div class="stage"><canvas id="view"></canvas></div>
 
-  <div class="layout">
-    <section class="panel controls" aria-label="แผงควบคุม">
-      <h2>โหมดการจำลอง</h2>
-      <div class="modes" role="tablist">
-        <button type="button" data-mode="1" role="tab">1 · การดลและแรงดล</button>
-        <button type="button" data-mode="2" role="tab">2 · การชนใน 1 มิติ</button>
-        <button type="button" data-mode="3" role="tab">3 · การดีดตัว / ระเบิด</button>
-        <button type="button" data-mode="4" role="tab">4 · การชนใน 2 มิติ</button>
-      </div>
-      <p class="hint" id="hint"></p>
+<header class="hud-title glass">
+  <div class="logo" aria-hidden="true"></div>
+  <div>
+    <h1>โมเมนตัมและการชน</h1>
+    <p>ฟิสิกส์ ม.4–ม.6 · ขวาเป็น + · ซ้ายเป็น − · ขึ้นเป็น +</p>
+  </div>
+</header>
+<div class="live glass" id="live"></div>
 
-      <div class="legend-row" aria-hidden="true">
-        <span><i class="dot a"></i>วัตถุ 1</span>
-        <span><i class="dot b"></i>วัตถุ 2</span>
-      </div>
+<div class="metrics">
+  <article class="metric" id="card-pi"><h3 id="lab-pi">โมเมนตัมรวมก่อน</h3><p id="val-pi">—</p><span>kg·m/s</span></article>
+  <article class="metric" id="card-pf"><h3 id="lab-pf">โมเมนตัมรวมหลัง</h3><p id="val-pf">—</p><span id="sub-pf">kg·m/s</span></article>
+  <article class="metric" id="card-ki"><h3>พลังงานจลน์ก่อน</h3><p id="val-ki">—</p><span>J</span></article>
+  <article class="metric" id="card-kf"><h3>พลังงานจลน์หลัง</h3><p id="val-kf">—</p><span id="sub-kf">J</span></article>
+  <article class="metric" id="card-dk"><h3>พลังงานที่สูญเสีย ΔEk</h3><p id="val-dk">—</p><span>Ekก่อน − Ekหลัง · J</span></article>
+</div>
+
+<div class="playbar glass">
+  <button type="button" id="play">เล่น</button>
+  <button type="button" id="reset">เริ่มใหม่</button>
+  <button type="button" data-speed="1" class="active">1×</button>
+  <button type="button" data-speed="0.5">0.5×</button>
+  <button type="button" data-speed="0.25">0.25×</button>
+</div>
+
+<button type="button" class="fab left" id="btn-controls" aria-expanded="false" aria-controls="pop-controls">ปรับค่า</button>
+<button type="button" class="fab right" id="btn-graphs" aria-expanded="false" aria-controls="pop-graphs">กราฟ</button>
+
+<section class="pop pop-controls glass" id="pop-controls" aria-label="แผงควบคุม">
+  <div class="pop-head">
+    <h2>ปรับค่า</h2>
+    <button type="button" class="pop-close" data-close="controls" aria-label="ปิด">×</button>
+  </div>
+  <div class="modes" role="tablist">
+    <button type="button" data-mode="1" role="tab">1 · การดลและแรงดล</button>
+    <button type="button" data-mode="2" role="tab">2 · การชนใน 1 มิติ</button>
+    <button type="button" data-mode="3" role="tab">3 · การดีดตัว / ระเบิด</button>
+    <button type="button" data-mode="4" role="tab">4 · การชนใน 2 มิติ</button>
+  </div>
+  <p class="hint" id="hint"></p>
+  <div class="legend-row" aria-hidden="true">
+    <span><i class="dot a"></i>วัตถุ 1</span>
+    <span><i class="dot b"></i>วัตถุ 2</span>
+  </div>
 
       <label class="field">
         <span class="field-top"><span>มวลวัตถุ 1 (m₁)</span><output id="o-m1">2.0 kg</output></span>
@@ -366,44 +483,26 @@
       <label class="switch"><input id="showV" type="checkbox" checked><span class="track"></span><span class="v-label">แสดงเวกเตอร์ความเร็ว (v)</span></label>
       <label class="switch"><input id="showP" type="checkbox" checked><span class="track"></span><span class="p-label">แสดงเวกเตอร์โมเมนตัม (p)</span></label>
 
-      <div class="transport">
-        <button type="button" id="play">เล่น</button>
-        <button type="button" id="reset">เริ่มใหม่</button>
-      </div>
-      <div class="speeds transport" role="group" aria-label="ความเร็วการเล่น">
-        <button type="button" data-speed="1" class="active">1×</button>
-        <button type="button" data-speed="0.5">0.5×</button>
-        <button type="button" data-speed="0.25">0.25×</button>
-      </div>
       <p class="note">สมมติฐาน: ระบบปิดไม่มีแรงภายนอก ยกเว้นโหมดชนกำแพง ซึ่งกำแพงออกแรงภายนอกต่อลูกบอล แรงดล I = Δp = FΔt บางตำราเรียกปริมาณนี้ว่าการดล</p>
-    </section>
+</section>
 
-    <section class="panel stage-wrap" aria-label="ฉากจำลอง">
-      <div class="stage"><canvas id="view"></canvas></div>
-      <div class="live" id="live"></div>
-      <div class="metrics">
-        <article class="metric" id="card-pi"><h3 id="lab-pi">โมเมนตัมรวมก่อน</h3><p id="val-pi">—</p><span>kg·m/s</span></article>
-        <article class="metric" id="card-pf"><h3 id="lab-pf">โมเมนตัมรวมหลัง</h3><p id="val-pf">—</p><span id="sub-pf">kg·m/s</span></article>
-        <article class="metric" id="card-ki"><h3>พลังงานจลน์ก่อน</h3><p id="val-ki">—</p><span>J</span></article>
-        <article class="metric" id="card-kf"><h3>พลังงานจลน์หลัง</h3><p id="val-kf">—</p><span id="sub-kf">J</span></article>
-        <article class="metric" id="card-dk"><h3>พลังงานที่สูญเสีย ΔEk</h3><p id="val-dk">—</p><span>Ekก่อน − Ekหลัง · J</span></article>
-      </div>
-      <div class="eq" id="eq"></div>
-    </section>
-
-    <aside class="panel side" aria-label="กราฟและบทวิเคราะห์">
-      <h2>กราฟแรงเทียบกับเวลา</h2>
-      <canvas class="graph-ft" id="ft"></canvas>
-      <p class="caption" id="ft-caption"></p>
-      <h2>กราฟแท่งก่อน–หลังชน</h2>
-      <canvas class="graph-bar" id="bars"></canvas>
-      <h2>วิเคราะห์รายวัตถุ</h2>
-      <div id="table"></div>
-      <h2>ความเข้าใจคลาดเคลื่อนที่พบบ่อย</h2>
-      <div class="myths" id="myths"></div>
-    </aside>
+<section class="pop pop-graphs glass" id="pop-graphs" aria-label="กราฟและบทวิเคราะห์">
+  <div class="pop-head">
+    <h2>กราฟและบทวิเคราะห์</h2>
+    <button type="button" class="pop-close" data-close="graphs" aria-label="ปิด">×</button>
   </div>
-</div>
+  <h2>กราฟแรงเทียบกับเวลา</h2>
+  <canvas class="graph-ft" id="ft"></canvas>
+  <p class="caption" id="ft-caption"></p>
+  <h2>กราฟแท่งก่อน–หลังชน</h2>
+  <canvas class="graph-bar" id="bars"></canvas>
+  <h2>สมการ</h2>
+  <div class="eq" id="eq"></div>
+  <h2>วิเคราะห์รายวัตถุ</h2>
+  <div id="table"></div>
+  <h2>ความเข้าใจคลาดเคลื่อนที่พบบ่อย</h2>
+  <div class="myths" id="myths"></div>
+</section>
 
 <script>
 "use strict";
@@ -1412,13 +1511,13 @@ function drawScene(ctx, w, h, sc, showV, showP) {
   ctx.font = "13px Leelawadee UI, Tahoma, sans-serif";
   const badge = phaseLabel(sc) + " · " + sc.typeName;
   const bw = ctx.measureText(badge).width + 16;
-  roundRect(ctx, 12, 12, bw, 26, 8);
+  roundRect(ctx, 16, 78, bw, 26, 8);
   ctx.fillStyle = "rgba(8,14,20,0.78)";
   ctx.fill();
   ctx.fillStyle = sim.phase === "contact" ? "#ffd166" : sim.phase === "after" ? "#8fd18d" : "#9fd7f5";
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText(badge, 20, 25);
+  ctx.fillText(badge, 24, 91);
 
   ctx.fillStyle = "rgba(232,238,244,0.8)";
   ctx.textAlign = "right";
@@ -1453,7 +1552,7 @@ function drawScene(ctx, w, h, sc, showV, showP) {
 
   const [sx0] = worldTo(view, 0, 0);
   const [sx4] = worldTo(view, 4, 0);
-  const baseY = h - 18;
+  const baseY = h - 168;
   ctx.strokeStyle = "#d5e2ec";
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -1472,9 +1571,9 @@ function drawScene(ctx, w, h, sc, showV, showP) {
 
   ctx.textAlign = "left";
   ctx.fillStyle = "#9fd7f5";
-  ctx.fillText("— v", 14, h - 28);
+  ctx.fillText("— v", 16, baseY - 36);
   ctx.fillStyle = "#ffd166";
-  ctx.fillText("— p", 14, h - 12);
+  ctx.fillText("— p", 16, baseY - 18);
 }
 
 function drawFT(ctx, w, h, sc) {
@@ -1781,7 +1880,7 @@ function init() {
     let live = "<strong>" + phaseLabel(sc) + "</strong> · โมเมนตัมขณะนี้ ";
     live += sc.mode === 4 ? ("Px " + fmt(now.px) + " , Py " + fmt(now.py)) : fmt(now.px);
     live += " kg·m/s · พลังงานจลน์ขณะนี้ " + fmt(now.ek) + " J";
-    if (!S.playing && sim.totalT === 0) live += " · กดเล่นเพื่อดูการเคลื่อนที่";
+    if (!S.playing && sim.totalT === 0) live += " · กดเล่น";
     if (sim.phase === "contact" && sc.mode === 1) live += " · ระหว่างสัมผัส พลังงานจลน์ยุบตัวชั่วคราว แล้วกลับคืนเพราะชนแบบยืดหยุ่น";
     document.getElementById("live").innerHTML = live;
     playBtn.textContent = S.playing ? "หยุดชั่วคราว" : "เล่น";
@@ -1855,6 +1954,41 @@ function init() {
     }
   });
   window.addEventListener("resize", function () { lastKey = ""; });
+
+  const popControls = document.getElementById("pop-controls");
+  const popGraphs = document.getElementById("pop-graphs");
+  const btnControls = document.getElementById("btn-controls");
+  const btnGraphs = document.getElementById("btn-graphs");
+  function setPop(name) {
+    const openControls = name === "controls" && !popControls.classList.contains("open");
+    const openGraphs = name === "graphs" && !popGraphs.classList.contains("open");
+    popControls.classList.remove("open");
+    popGraphs.classList.remove("open");
+    btnControls.classList.remove("open");
+    btnGraphs.classList.remove("open");
+    btnControls.setAttribute("aria-expanded", "false");
+    btnGraphs.setAttribute("aria-expanded", "false");
+    const el = openControls ? popControls : openGraphs ? popGraphs : null;
+    const btn = openControls ? btnControls : openGraphs ? btnGraphs : null;
+    if (el) {
+      void el.offsetWidth;
+      el.classList.add("open");
+      btn.classList.add("open");
+      btn.setAttribute("aria-expanded", "true");
+    }
+  }
+  btnControls.addEventListener("click", function () { setPop("controls"); });
+  btnGraphs.addEventListener("click", function () { setPop("graphs"); });
+  document.querySelectorAll("[data-close]").forEach(function (btn) {
+    btn.addEventListener("click", function () { setPop(""); });
+  });
+  document.addEventListener("pointerdown", function (ev) {
+    if (ev.target.closest(".pop, .fab, .playbar")) return;
+    if (popControls.classList.contains("open") || popGraphs.classList.contains("open")) setPop("");
+  });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape") setPop("");
+  });
   window.addEventListener("error", function (ev) {
     const live = document.getElementById("live");
     if (live) live.textContent = "เกิดข้อผิดพลาดในการจำลอง: " + ev.message;
